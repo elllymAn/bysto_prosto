@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>fonts/Marmelad-Regular.ttf</file>
+    </qresource>
+</RCC>
