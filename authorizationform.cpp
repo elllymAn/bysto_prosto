@@ -2,10 +2,8 @@
 #include "ui_authorizationform.h"
 #include <QSqlError>
 #include <QSqlQuery>
-#include <QSqlError>
 #include "stylehelper.h"
 #include "passwordline.h"
-#include <QFontDatabase>
 #include <QMessageBox>
 
 AuthorizationForm::AuthorizationForm(MainWindow *parent)
@@ -13,7 +11,6 @@ AuthorizationForm::AuthorizationForm(MainWindow *parent)
     , ui(new Ui::AuthorizationForm)
 {
     ui->setupUi(this);
-    QFontDatabase::addApplicationFont(":/fonts/Marmelad-Regular.ttf");
 
     db_helper = parent->getDBConnector();
     setWindowStyle();
@@ -75,8 +72,8 @@ void AuthorizationForm::on_enter_button_clicked()
     {
         while(qry.next())
         {
-            //qDebug() << qry.value(0).toString();
-          //  qDebug() << qry.value(1).toString();
+            qDebug() << qry.value(0).toString();
+            qDebug() << qry.value(1).toString();
             if(qry.value(0).toString() == ui->lineEdit_2->text() && qry.value(1).toString() == passwordLine->text())
             {
                 QSqlQuery qry_check;
@@ -85,11 +82,11 @@ void AuthorizationForm::on_enter_button_clicked()
                     qry_check.next();
                     if(qry_check.value(0).toString() == "151")
                     {
-                        emit RoleDefine(Role::MANAGER);
+                        emit RoleDefine(Role::MANAGER, qry_check.value(0).toInt());
                         return;
                     }
                 }
-                emit RoleDefine(Role::USER);
+                emit RoleDefine(Role::USER, qry_check.value(0).toInt());
                 return;
             }
         }
@@ -102,7 +99,7 @@ void AuthorizationForm::on_enter_button_clicked()
             qDebug() << qry.value(1).toString();
             if(qry.value(0).toString() == ui->lineEdit_2->text() && qry.value(1).toString() == passwordLine->text())
             {
-                emit RoleDefine(Role::COURIER);
+                emit RoleDefine(Role::COURIER, qry.value(0).toInt());
                 return;
             }
         }

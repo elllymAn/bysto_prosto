@@ -29,7 +29,7 @@ private:
     void setWindowStyle();
     PasswordLine* passwordLine;
 signals:
-    void RoleDefine(Role);
+    void RoleDefine(Role, int);
 };
 
 #endif // AUTHORIZATIONFORM_H

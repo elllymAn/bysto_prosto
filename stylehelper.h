@@ -8,6 +8,9 @@ public:
     static QString addProjectFont(QString);
     static QString addTextStyle();
     static QString addPushButtonStyle();
+    static QString addPushButtonStyle2();
+    static QString addPushButtonStyleUse();
+    static QString userStyle();
 };
 
 #endif // STYLEHELPER_H

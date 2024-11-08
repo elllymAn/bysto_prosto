@@ -2,7 +2,10 @@
 #define MAINWINDOW_H
 #include "databaseconnector.h"
 #include <QMainWindow>
+#include "freezetablewidget.h"
 #include "roles.h"
+#include "optionbutton.h"
+#include "freezetablewidget.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -23,8 +26,18 @@ private:
     void authorization();
     DatabaseConnector* db_helper;
     QList <QWidget*> childs;
+    void setOrderTabStyle();
+    void setHistoryTabStyle();
+    optionButton* optionManager;
+    void correctPrice();
+    int id_user;
+    FreezeTableWidget* freeze_table;
 private slots:
-    void checkRole(Role type);
-    void on_pushButton_clicked();
+    void checkRole(Role type, int id);
+    void on_pushButton_4_clicked();
+    void on_pushButton_2_clicked();
+    void on_pushButton_3_clicked();
+    void on_enterOrder_clicked();
+    void on_tabWidget_currentChanged(int index);
 };
 #endif // MAINWINDOW_H

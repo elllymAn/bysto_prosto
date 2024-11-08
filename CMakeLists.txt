@@ -37,6 +37,11 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         fonts.qrc
         authorizationform.h authorizationform.cpp authorizationform.ui
         roles.h
+        optionbutton.h optionbutton.cpp
+        freezetablewidget.h freezetablewidget.cpp
+        buttondelegate.h buttondelegate.cpp
+        reviewform.h reviewform.cpp reviewform.ui
+
 
 
     )

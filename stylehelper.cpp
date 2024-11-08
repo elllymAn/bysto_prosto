@@ -28,3 +28,27 @@ QString styleHelper::addPushButtonStyle()
            "color: white;"
            "}";
 }
+
+QString styleHelper::addPushButtonStyle2()
+{
+    return "QPushButton{"
+           "background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(105, 224, 254, 255), stop:1 rgba(63, 134, 152, 255));"
+           "border-radius: 20px;"
+           "font-family: Marmelad;"
+           "color: white;"
+           "}";
+}
+
+QString styleHelper::addPushButtonStyleUse()
+{
+    return "QPushButton:hover{"
+           "background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(242, 133, 255, 255), stop:1 rgba(63, 134, 152, 255));"
+           "}";
+}
+
+QString styleHelper::userStyle()
+{
+    return "QPushButton{"
+           "qproperty-icon: url(qrc:/resources/rocket.png);"
+           "}";
+}
