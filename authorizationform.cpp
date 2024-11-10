@@ -95,8 +95,8 @@ void AuthorizationForm::on_enter_button_clicked()
     {
         while(qry.next())
         {
-            qDebug() << qry.value(0).toString();
-            qDebug() << qry.value(1).toString();
+           // qDebug() << qry.value(0).toString();
+           // qDebug() << qry.value(1).toString();
             if(qry.value(0).toString() == ui->lineEdit_2->text() && qry.value(1).toString() == passwordLine->text())
             {
                 emit RoleDefine(Role::COURIER, qry.value(0).toInt());

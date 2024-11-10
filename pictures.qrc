@@ -4,10 +4,11 @@
         <file>resources/icons8-close-eye-48.png</file>
         <file>resources/icons8-eye-64.png</file>
         <file>resources/icons8-filter-50.png</file>
-        <file>resources/icons8-star-48.png</file>
         <file>resources/rocket.png</file>
         <file>resources/clip_icon.png</file>
         <file>resources/delivery_icon.png</file>
         <file>resources/done_icon.png</file>
+        <file>resources/icons8-star-48-.png</file>
+        <file>resources/icons8-star-48-full.png</file>
     </qresource>
 </RCC>

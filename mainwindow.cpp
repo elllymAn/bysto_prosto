@@ -10,19 +10,19 @@
 #include <QSqlError>
 #include <QSqlQueryModel>
 
+
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow), id_user(65), optionManager(nullptr), freeze_table(nullptr), db_helper(nullptr)
+    , ui(new Ui::MainWindow), id_user(-1),
+    optionManager(nullptr), freeze_table(nullptr), db_helper(nullptr)
 {
     ui->setupUi(this);
     QFontDatabase::addApplicationFont(":/fonts/Marmelad-Regular.ttf");
     db_helper = new DatabaseConnector();
     db_helper->connect("127.0.0.1", "courier_db", "postgres", "1234", 5432);
-    freeze_table = new FreezeTableWidget();
-    freeze_table->setModel();
-    setOrderTabStyle();
-    setHistoryTabStyle();
     authorization();
+    setOrderTabStyle();
 }
 
 MainWindow::~MainWindow()
@@ -47,7 +47,7 @@ void MainWindow::authorization()
     AuthorizationForm* form = new AuthorizationForm(this);
     childs.append(form);
     form->show();
-    connect(form, SIGNAL(RoleDefine(Role, int)), this, SLOT(checkRole(Role, int)));
+    connect(form, SIGNAL(RoleDefine(Role,int)), this, SLOT(checkRole(Role,int)));
 }
 
 void MainWindow::setHistoryTabStyle()
@@ -138,11 +138,15 @@ void MainWindow::checkRole(Role user, int id)
 {
     childs[0]->close(); //close authorization window
     this->show();
-    if(user==Role::USER)
-    {
-        setOrderTabStyle();
-    }
+   // if(user==Role::USER)
+   // {
+   //     setOrderTabStyle();
+   // }
+
     id_user = id;
+    freeze_table = new FreezeTableWidget(id);
+    freeze_table->setModel();
+    setHistoryTabStyle();
 }
 
 
@@ -210,4 +214,5 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 {
     freeze_table->updateValues(id_user);
 }
+
 

@@ -34,12 +34,11 @@ void CustomDelegateView::paint(QPainter *painter, const QStyleOptionViewItem &op
         painter->setPen(Qt::white); // Цвет текста
         painter->drawText(button.rect, Qt::AlignCenter, button.text);
     }
-
 }
 
 bool CustomDelegateView::editorEvent(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option, const QModelIndex &index)
 {
-    if(event->type() == QEvent::MouseButtonRelease && index.column() == 4) {
+    if(event->type() == QEvent::MouseButtonRelease && m_buttonIndexes.contains(index)) {
         emit signalClicked(index);
     }
     else
@@ -50,5 +49,10 @@ bool CustomDelegateView::editorEvent(QEvent *event, QAbstractItemModel *model, c
 void CustomDelegateView::addButtonIndexes(const QModelIndex& indexes)
 {
     m_buttonIndexes.insert(indexes);
+}
+
+void CustomDelegateView::clearData()
+{
+    m_buttonIndexes.clear();
 }
 

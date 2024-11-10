@@ -30,8 +30,8 @@ private:
     void setHistoryTabStyle();
     optionButton* optionManager;
     void correctPrice();
-    int id_user;
     FreezeTableWidget* freeze_table;
+    int id_user;
 private slots:
     void checkRole(Role type, int id);
     void on_pushButton_4_clicked();

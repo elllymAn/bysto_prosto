@@ -14,6 +14,7 @@ public:
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     bool editorEvent(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option, const QModelIndex &index) override;
     void addButtonIndexes(const QModelIndex& indexes);
+    void clearData();
 private:
     QSet<QModelIndex> m_buttonIndexes;
 };
