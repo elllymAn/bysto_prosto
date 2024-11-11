@@ -10,12 +10,13 @@ class CustomDelegateView : public QItemDelegate
 signals:
     QModelIndex signalClicked(QModelIndex index);
 public:
-    CustomDelegateView(QObject *parent = 0);
+    CustomDelegateView(QObject *parent = nullptr, QString text = "");
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     bool editorEvent(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option, const QModelIndex &index) override;
     void addButtonIndexes(const QModelIndex& indexes);
     void clearData();
 private:
+    QString text;
     QSet<QModelIndex> m_buttonIndexes;
 };
 

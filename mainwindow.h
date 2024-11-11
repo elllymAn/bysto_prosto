@@ -28,9 +28,11 @@ private:
     QList <QWidget*> childs;
     void setOrderTabStyle();
     void setHistoryTabStyle();
+    void setCurrentOrderTabStyle();
     optionButton* optionManager;
     void correctPrice();
     FreezeTableWidget* freeze_table;
+    FreezeTableWidget* current_orders;
     int id_user;
 private slots:
     void checkRole(Role type, int id);

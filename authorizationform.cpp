@@ -36,7 +36,6 @@ void AuthorizationForm::addBackgroundGradient()
 
 void AuthorizationForm::setWindowStyle()
 {
-
     //making design
     addBackgroundGradient();
     ui->hi_label->setStyleSheet(styleHelper::addProjectFont("white"));

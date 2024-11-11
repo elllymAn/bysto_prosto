@@ -2,6 +2,7 @@
 #include <QApplication>
 #include <QLocale>
 #include <QTranslator>
+//#include "correctorderform.h"
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
@@ -16,5 +17,7 @@ int main(int argc, char *argv[])
         }
     }
     MainWindow w;
+    //correctOrderForm v(nullptr, -1);
+    //v.open();
     return a.exec();
 }

@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <QDebug>
 #include <QVariant>
+#include <QMetaType>
 
 ReviewForm::ReviewForm(QWidget *parent, int id_client, int id_order)
     : QDialog(parent),
@@ -50,7 +51,7 @@ void ReviewForm::on_pushButton_clicked()
 
     // Привязка значений
     if(ui->plainTextEdit->toPlainText() == "")
-        qry.bindValue(":info", QVariant(QVariant::Invalid));
+        qry.bindValue(":info", QVariant());
     else
         qry.bindValue(":info", ui->plainTextEdit->toPlainText());
     qry.bindValue(":mark", enteredRating);
@@ -70,7 +71,6 @@ void ReviewForm::on_pushButton_clicked()
 
 void ReviewForm::paintGivingRating()
 {
-    qDebug() << "попадаем сюда";
 
     QPushButton* buttonSender = qobject_cast<QPushButton*>(sender());
     if (!buttonSender) {

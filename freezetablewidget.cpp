@@ -1,20 +1,25 @@
 #include "freezetablewidget.h"
-
 #include <QScrollBar>
 #include <QHeaderView>
 #include <QSqlQuery>
 #include <QMessageBox>
 #include <QDebug>
-#include "reviewform.h"
 #include <QPainter>
+#include <QFunctionPointer>
 #include "buttondelegate.h"
+
+
+FreezeTableWidget::FreezeTableWidget() : data_query(""), query_sort("") {}
+
 //! [constructor]
-FreezeTableWidget::FreezeTableWidget(int client)
+void FreezeTableWidget::init(QString data_query, QString query_sort, std::function<void(QModelIndex)> func_delegate, QString text_on_delegate)
 {
-    //setModel(model);
+    this->data_query = data_query;
+    this->query_sort = query_sort;
+
     frozenTableView = new QTableView(this);
     sql_model = new QSqlTableModel(this);
-    delegate = new CustomDelegateView(this);
+    delegate = new CustomDelegateView(this, text_on_delegate);
     proxyModel = new QSortFilterProxyModel(sql_model);
 
 
@@ -27,15 +32,7 @@ FreezeTableWidget::FreezeTableWidget(int client)
             verticalScrollBar(), &QAbstractSlider::setValue);
     connect(verticalScrollBar(), &QAbstractSlider::valueChanged,
             frozenTableView->verticalScrollBar(), &QAbstractSlider::setValue);
-    connect(delegate, &CustomDelegateView::signalClicked, delegate, [this, client](QModelIndex index) {
-        ReviewForm* form = new ReviewForm(nullptr, client, this->model()->data(this->model()->index(index.row(), 0)).toInt());
-        connect(form, &QDialog::finished, this,
-            [this, client]()
-            {
-            init_data(client);
-            });
-        form->exec();
-    });
+    connect(delegate, &CustomDelegateView::signalClicked, delegate, func_delegate);
 }
 //! [constructor]
 
@@ -55,17 +52,20 @@ void FreezeTableWidget::setModel()
     proxyModel->setSourceModel(sql_model);
     QTableView::setModel(proxyModel);
     frozenTableView->setModel(model());
-    init();
+    init_style();
 }
 
 
-void FreezeTableWidget::updateValues(int id_user)
+void FreezeTableWidget::updateValues(QString data_qry, QString qry_sort)
 {
-    init_data(id_user);
+    if(data_qry == "" and qry_sort == "")
+        init_data(this->data_query, this->query_sort);
+    else
+        init_data(data_qry, qry_sort);
 }
 
 //! [init part1]
-void FreezeTableWidget::init()
+void FreezeTableWidget::init_style()
 {
    // frozenTableView->setModel(model());
     frozenTableView->setFocusPolicy(Qt::NoFocus);
@@ -141,17 +141,6 @@ void FreezeTableWidget::updateSectionHeight(int logicalIndex, int /* oldSize */,
     frozenTableView->setRowHeight(logicalIndex, newSize);
 }
 
-// void FreezeTableWidget::sortSelectedColumn()
-// {
-//     QModelIndex currentIndex = this->currentIndex();
-//     if (!currentIndex.isValid() && currentIndex.column() == 4) {
-//         return;
-//     }
-//      // create proxy
-
-//    // qDebug() << "сюда попадаем " + QString::number(currentIndex.column());
-//     //sql_model->sort(currentIndex.column(), Qt::AscendingOrder);
-// }
 //! [sections]
 
 
@@ -185,6 +174,7 @@ void FreezeTableWidget::scrollTo (const QModelIndex & index, ScrollHint hint){
         QTableView::scrollTo(index, hint);
 }
 
+
 //! [geometry]
 void FreezeTableWidget::updateFrozenTableGeometry()
 {
@@ -193,34 +183,34 @@ void FreezeTableWidget::updateFrozenTableGeometry()
                                  viewport()->height()+horizontalHeader()->height());
 }
 
-void FreezeTableWidget::init_data(int id_user)
+void FreezeTableWidget::init_data(QString data_qry, QString qry_sort)
 {
+    //qDebug() << this->data_query;
+   // qDebug() << this->query_sort;
+   // qDebug() << data_qry;
+   // qDebug() << qry_sort;
     delegate->clearData();
     sql_model->clear();
     QSqlQuery qry;
-    qry.exec("SELECT КодЗаказа, СтатусЗаказа, АдресПолученияТовара, АдресДоставки FROM ИсторияПользователей WHERE "//СтатусЗаказа = 'Выполнен' AND "
-             "КодКлиента = " + QString::number(id_user));
+    qry.exec(data_qry);
     sql_model->setQuery(std::move(qry));
-    sql_model->insertColumns(4, 1);
-    sql_model->setHeaderData(4, Qt::Horizontal, tr("                      "));
-    //sql_model->set
+    sql_model->insertColumns(sql_model->columnCount(), 1);
+    sql_model->setHeaderData(sql_model->columnCount()-1, Qt::Horizontal, tr("                      "));
+
+
     //init buttons for making feedback
     QSqlQuery qry_review;
-    qry_review.exec("SELECT КодЗаказа FROM ИсторияПользователей WHERE КодКлиента =" + QString::number(id_user) + " AND КодЗаказа "
-                    "NOT IN (SELECT КодЗаказа FROM Отзыв WHERE КодКлиента = " + QString::number(id_user) + ");");
+    qry_review.exec(qry_sort);
     QSet<int> existingOrderIds;
     while(qry_review.next()) {
         existingOrderIds.insert(qry_review.value(0).toInt());
     }
     for (int row = 0; row < this->model()->rowCount(); ++row) {
         int orderId = this->model()->data(this->model()->index(row, 0)).toInt();
-        QString position = this->model()->data(this->model()->index(row, 1)).toString();
-        if (existingOrderIds.contains(orderId) and position == "Выполнен") {
+        if (existingOrderIds.contains(orderId)) {
             delegate->addButtonIndexes(this->model()->index(row, 4));
         }
-        //this->model()->setData(this->model()->index(row, 4), "Заказ еще не доставлен");
     }
     this->setItemDelegate(delegate);
-    //delete delegate;
 }
 

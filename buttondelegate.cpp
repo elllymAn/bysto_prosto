@@ -4,8 +4,8 @@
 #include <QPainter>
 #include <QDebug>
 
-CustomDelegateView::CustomDelegateView(QObject *parent) :
-    QItemDelegate(parent)
+CustomDelegateView::CustomDelegateView(QObject *parent, QString line) :
+    QItemDelegate(parent), text(line)
 {
 
 }
@@ -18,7 +18,7 @@ void CustomDelegateView::paint(QPainter *painter, const QStyleOptionViewItem &op
         QStyleOptionButton button;
         button.rect = buttonRect;
         button.state = QStyle::State_Enabled;
-        button.text = "Дать отзыв";
+        button.text = text;
 
         QLinearGradient gradient(buttonRect.topLeft(), buttonRect.bottomLeft());
         gradient.setColorAt(0, QColor(242,133,255));

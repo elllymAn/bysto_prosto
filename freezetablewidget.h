@@ -5,28 +5,31 @@
 #include <QSqlTableModel>
 #include "buttondelegate.h"
 #include <QSortFilterProxyModel>
+#include <functional>
 
 class FreezeTableWidget : public QTableView {
     Q_OBJECT
 
 public:
-    FreezeTableWidget(int client);
+    FreezeTableWidget();
     ~FreezeTableWidget();
     void setModel();
-    void updateValues(int id_user);
-   // void sortSelectedColumn();
+    void updateValues(QString data_query = "", QString query_sort = "");
+    void init(QString data_query,
+              QString query_sort, std::function<void(QModelIndex)> func_delegate, QString text_on_delegate = "");
 protected:
     void resizeEvent(QResizeEvent *event) override;
     QModelIndex moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers) override;
     void scrollTo (const QModelIndex & index, ScrollHint hint = EnsureVisible) override;
- //   void setItemDelegateForColumn(int column, QAbstractItemDelegate* delegate ) override;
 
 private:
+    QString data_query;
+    QString query_sort;
     QTableView *frozenTableView;
-    void init();
+    void init_style();
     void updateFrozenTableGeometry();
     QSqlTableModel* sql_model;
-    void init_data(int id_user);
+    void init_data(QString data_query, QString query_sort);
     CustomDelegateView* delegate;
     QSortFilterProxyModel *proxyModel;
 private slots:
