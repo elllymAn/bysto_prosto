@@ -2,7 +2,6 @@
 #define AUTHORIZATIONFORM_H
 
 #include <QWidget>
-#include "databaseconnector.h"
 #include "passwordline.h"
 #include "mainwindow.h"
 
@@ -20,7 +19,7 @@ public:
 
 protected:
     void paintEvent(QPaintEvent* event) override;
-    DatabaseConnector* db_helper;
+   // DatabaseConnector* db_helper;
 private slots:
     void on_enter_button_clicked();
 private:

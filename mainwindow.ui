@@ -201,7 +201,7 @@ background-position: center center;
  }</string>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="tab">
        <property name="styleSheet">
@@ -212,7 +212,7 @@ border-style: none;
 }</string>
        </property>
        <attribute name="title">
-        <string>Tab 1</string>
+        <string>User</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_4">
         <item row="10" column="0" colspan="2">
@@ -904,7 +904,7 @@ border-style: none;
 }</string>
        </property>
        <attribute name="title">
-        <string>Tab 2</string>
+        <string>User</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout">
         <item row="0" column="4">
@@ -990,7 +990,7 @@ background-color: #01327D;
 }</string>
        </property>
        <attribute name="title">
-        <string>Страница</string>
+        <string>User</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_9">
         <item row="2" column="1">
@@ -1058,6 +1058,16 @@ background-color: #01327D;
          </layout>
         </item>
        </layout>
+      </widget>
+      <widget class="QWidget" name="tab_4">
+       <attribute name="title">
+        <string>Courier</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="tab_5">
+       <attribute name="title">
+        <string>Courier</string>
+       </attribute>
       </widget>
      </widget>
     </item>

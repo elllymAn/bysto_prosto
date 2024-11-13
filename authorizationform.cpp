@@ -12,7 +12,7 @@ AuthorizationForm::AuthorizationForm(MainWindow *parent)
 {
     ui->setupUi(this);
 
-    db_helper = parent->getDBConnector();
+    //db_helper = parent->getDBConnector();
     setWindowStyle();
 }
 
@@ -47,7 +47,7 @@ void AuthorizationForm::setWindowStyle()
 
     //forms design
     ui->lineEdit_2->setClearButtonEnabled(true);
-    ui->lineEdit_2->setInputMask(QString("8XXXXXXXXXX"));
+    ui->lineEdit_2->setInputMask(QString("80000000000"));
     //configurate password form
     passwordLine = new PasswordLine();
     passwordLine->setMinimumSize(QSize(293, 40));
@@ -105,7 +105,7 @@ void AuthorizationForm::on_enter_button_clicked()
     }
     else
     {
-        qDebug() << "PostgreSQL_authorization_error: " << db_helper->getDB().lastError();
+        qDebug() << "PostgreSQL_authorization_error: "; //<< db_helper->getDB().lastError();
     }
     QMessageBox::information(this, "Ошибка","Неверно введены данные!", QMessageBox::Apply);
 }

@@ -17,7 +17,6 @@ public:
                          const QString& password,
                          const int& port);
     void disConnect();
-    //void selectZZZZ();
     QSqlDatabase getDB();
 
 private:

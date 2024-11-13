@@ -22,23 +22,25 @@ public:
     ~MainWindow();
     DatabaseConnector* getDBConnector();
 private:
-    Ui::MainWindow *ui;
     void authorization();
-    DatabaseConnector* db_helper;
+    void initUserMode(int id);
+    void initCourierMode(int id);
+    void initManagerMode(int id);
+    void initDefaultStyle();
+
+    Ui::MainWindow *ui;
     QList <QWidget*> childs;
-    void setOrderTabStyle();
-    void setHistoryTabStyle();
-    void setCurrentOrderTabStyle();
-    optionButton* optionManager;
-    void correctPrice();
     FreezeTableWidget* freeze_table;
     FreezeTableWidget* current_orders;
+    DatabaseConnector* db_helper;
+    optionButton* optionManager;
+
+
     int id_user;
+    Role role_user;
 private slots:
+
     void checkRole(Role type, int id);
-    void on_pushButton_4_clicked();
-    void on_pushButton_2_clicked();
-    void on_pushButton_3_clicked();
     void on_enterOrder_clicked();
     void on_tabWidget_currentChanged(int index);
 };

@@ -18,10 +18,12 @@ private slots:
     void on_pushButton_clicked();
     void paintGivingRating();
 private:
+    void init();
+
+
     QList<QPushButton*> stars;
     int enteredRating;
     Ui::ReviewForm *ui;
-    void init();
     int client;
     int id_order_review;
 };

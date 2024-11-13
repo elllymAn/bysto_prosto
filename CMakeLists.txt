@@ -42,6 +42,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         buttondelegate.h buttondelegate.cpp
         reviewform.h reviewform.cpp reviewform.ui
         correctorderform.h correctorderform.cpp correctorderform.ui
+        payment.h payment.cpp payment.ui
 
 
 
