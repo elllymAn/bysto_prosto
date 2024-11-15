@@ -11,7 +11,7 @@ class FreezeTableWidget : public QTableView {
     Q_OBJECT
 
 public:
-    FreezeTableWidget();
+    FreezeTableWidget(QWidget* parent = nullptr);
     ~FreezeTableWidget();
     void setModel();
     void updateValues(QString data_query = "", QString query_sort = "");
@@ -30,6 +30,9 @@ private:
     void updateFrozenTableGeometry();
     QSqlTableModel* sql_model;
     void init_data(QString data_query, QString query_sort);
+
+    int ParentX;
+    int ParentY;
     CustomDelegateView* delegate;
     QSortFilterProxyModel *proxyModel;
 private slots:

@@ -35,7 +35,7 @@ void correctOrderForm::init()
     ui->address_del->setStyleSheet(styleHelper::addTextStyle());
     ui->fio->setStyleSheet(styleHelper::addTextStyle());
     ui->telephone->setStyleSheet(styleHelper::addTextStyle());
-    ui->telephone->setInputMask("8XXXXXXXXXX");
+    ui->telephone->setInputMask("800000000");
     ui->weight->setValidator(new QRegularExpressionValidator(QRegularExpression("^\\d+(\\.\\d+)?$"), ui->weight));
 
     ui->pushButton->setStyleSheet(styleHelper::addPushButtonStyle2());

@@ -10,5 +10,6 @@
         <file>resources/done_icon.png</file>
         <file>resources/icons8-star-48-.png</file>
         <file>resources/icons8-star-48-full.png</file>
+        <file>resources/get_order_icon.png</file>
     </qresource>
 </RCC>

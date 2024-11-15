@@ -7,9 +7,14 @@
 #include <QPainter>
 #include <QFunctionPointer>
 #include "buttondelegate.h"
+#include <QLineEdit>
+#include <QHBoxLayout>
 
-
-FreezeTableWidget::FreezeTableWidget() : data_query(""), query_sort("") {}
+FreezeTableWidget::FreezeTableWidget(QWidget* parent) : data_query(""), query_sort("")
+{
+    ParentX = parent->pos().x();
+    ParentY = parent->pos().y();
+}
 
 //! [constructor]
 void FreezeTableWidget::init(QString data_query, QString query_sort, std::function<void(QModelIndex)> func_delegate, QString text_on_delegate)
@@ -52,6 +57,56 @@ void FreezeTableWidget::setModel()
     proxyModel->setSourceModel(sql_model);
     QTableView::setModel(proxyModel);
     frozenTableView->setModel(model());
+    connect(this->horizontalHeader(), &QHeaderView::sectionClicked, [this](int section)
+    {
+        QHeaderView* headerView = this->horizontalHeader();
+        QWidget* sortWidget = new QWidget(this, Qt::Popup);
+
+        // Устанавливаем стиль для sortWidget
+        sortWidget->setStyleSheet("background-color: rgba(1, 50, 125, 128);"
+                                  "color: white;"
+                                  "font-family: Marmelad;"
+                                  "font-size: 20px;");
+
+        QHBoxLayout* lo = new QHBoxLayout(sortWidget);
+        QLineEdit* le = new QLineEdit(sortWidget);
+
+        connect(le, &QLineEdit::textChanged, [this, section](const QString& toSort) {
+            if (toSort.isEmpty()) {
+                proxyModel->setFilterFixedString("");
+                proxyModel->sort(section);
+            } else {
+                proxyModel->setFilterKeyColumn(section);
+                proxyModel->setFilterFixedString(toSort);
+                proxyModel->sort(section);
+            }
+        });
+
+        lo->addWidget(le);
+        sortWidget->setLayout(lo);
+
+        // Определяем размер и позицию столбца
+        const int columnWidth = headerView->sectionSize(section);  // Ширина столбца
+        const int columnPos = headerView->sectionPosition(section); // Позиция столбца на экране
+
+        // Учитываем прокрутку таблицы
+        const int horizontalOffset = this->horizontalScrollBar()->value();
+
+        // Позиционируем sortWidget над столбцом
+        const int sx = columnPos - horizontalOffset + (ParentX + this->pos().x());
+        const int sy = ParentY + this->pos().y() - sortWidget->height();  // Отступ сверху для размещения над столбцом
+
+        // Устанавливаем размер и показываем форму
+        sortWidget->resize(columnWidth, 40);
+        sortWidget->move(sx, sy);
+        sortWidget->show();
+        connect(this->horizontalHeader(), &QHeaderView::sectionClicked, [this, sortWidget, section](int clicked)
+        {
+            //sortWidget->deleteLater();
+            proxyModel->setFilterFixedString("");
+            proxyModel->sort(section);
+        });
+    });
     init_style();
 }
 
@@ -192,25 +247,23 @@ void FreezeTableWidget::init_data(QString data_qry, QString qry_sort)
     delegate->clearData();
     sql_model->clear();
     QSqlQuery qry;
-    qry.exec(data_qry);
+    if(!qry.exec(data_qry)) {qDebug() << "data_qry"; }
     sql_model->setQuery(std::move(qry));
-    sql_model->insertColumns(sql_model->columnCount(), 1);
-    sql_model->setHeaderData(sql_model->columnCount()-1, Qt::Horizontal, tr("                      "));
-
-
-    //init buttons for making feedback
     QSqlQuery qry_review;
-    qry_review.exec(qry_sort);
+    if(!qry_review.exec(qry_sort)) {qDebug() << "review errror";}
     QSet<int> existingOrderIds;
     while(qry_review.next()) {
         existingOrderIds.insert(qry_review.value(0).toInt());
     }
+    sql_model->insertColumns(sql_model->columnCount(), 1);
+    sql_model->setHeaderData(sql_model->columnCount()-1, Qt::Horizontal, tr("                      "));
+
+    //init buttons for making feedback
     for (int row = 0; row < this->model()->rowCount(); ++row) {
         int orderId = this->model()->data(this->model()->index(row, 0)).toInt();
         if (existingOrderIds.contains(orderId)) {
-            delegate->addButtonIndexes(this->model()->index(row, 4));
+            delegate->addButtonIndexes(this->model()->index(row, sql_model->columnCount()-1));
         }
     }
     this->setItemDelegate(delegate);
 }
-

@@ -67,30 +67,25 @@ void AuthorizationForm::paintEvent(QPaintEvent *event)
 void AuthorizationForm::on_enter_button_clicked()
 {
     QSqlQuery qry;
-    if(qry.exec("SELECT НомерТелефона, Пароль FROM Клиент"))
+    if(qry.exec("SELECT НомерТелефона, Пароль, КодКлиента FROM Клиент"))
     {
         while(qry.next())
         {
-            qDebug() << qry.value(0).toString();
-            qDebug() << qry.value(1).toString();
+            //qDebug() << qry.value(0).toString();
+            //qDebug() << qry.value(1).toString();
             if(qry.value(0).toString() == ui->lineEdit_2->text() && qry.value(1).toString() == passwordLine->text())
             {
-                QSqlQuery qry_check;
-                if(qry_check.exec("SELECT КодКлиента FROM Клиент WHERE НомерТелефона = '" + ui->lineEdit_2->text() + "'"))
+                if(qry.value(2).toString() == "151")
                 {
-                    qry_check.next();
-                    if(qry_check.value(0).toString() == "151")
-                    {
-                        emit RoleDefine(Role::MANAGER, qry_check.value(0).toInt());
-                        return;
-                    }
+                    emit RoleDefine(Role::MANAGER, qry.value(2).toInt());
+                    return;
                 }
-                emit RoleDefine(Role::USER, qry_check.value(0).toInt());
+                emit RoleDefine(Role::USER, qry.value(2).toInt());
                 return;
             }
         }
     }
-    if(qry.exec("SELECT НомерТелефона, Пароль FROM Курьер"))
+    if(qry.exec("SELECT НомерТелефона, Пароль, КодКурьера FROM Курьер"))
     {
         while(qry.next())
         {
@@ -98,7 +93,7 @@ void AuthorizationForm::on_enter_button_clicked()
            // qDebug() << qry.value(1).toString();
             if(qry.value(0).toString() == ui->lineEdit_2->text() && qry.value(1).toString() == passwordLine->text())
             {
-                emit RoleDefine(Role::COURIER, qry.value(0).toInt());
+                emit RoleDefine(Role::COURIER, qry.value(2).toInt());
                 return;
             }
         }

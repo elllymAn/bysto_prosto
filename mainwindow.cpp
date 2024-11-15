@@ -16,7 +16,8 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow), id_user(-1),
-    optionManager(nullptr), freeze_table(nullptr), db_helper(nullptr)
+    optionManager(nullptr), //freeze_table(nullptr),
+    db_helper(nullptr)
 {
     ui->setupUi(this);
     QFontDatabase::addApplicationFont(":/fonts/Marmelad-Regular.ttf");
@@ -31,8 +32,11 @@ MainWindow::~MainWindow()
     delete ui;
     delete db_helper;
     delete optionManager;
-    delete freeze_table;
-    delete current_orders;
+    foreach (QWidget* key, tables) {
+        delete tables[key];
+    }
+  //  delete freeze_table;
+ //   delete current_orders;
     foreach (QWidget* child, childs) {
         delete child;
     }
@@ -64,12 +68,12 @@ void MainWindow::initUserMode(int id)
     QPixmap pixmap2(":/resources/delivery_icon.png");
     QIcon ButtonIcon2(pixmap2);
     ui->pushButton_2->setIcon(ButtonIcon2);
-    ui->pushButton_2->setIconSize(ui->pushButton_4->size());
+    ui->pushButton_2->setIconSize(ui->pushButton_2->size());
 
     QPixmap pixmap3(":/resources/done_icon.png");
     QIcon ButtonIcon3(pixmap3);
     ui->pushButton_3->setIcon(ButtonIcon3);
-    ui->pushButton_3->setIconSize(ui->pushButton_4->size());
+    ui->pushButton_3->setIconSize(ui->pushButton_3->size());
 
     //order menu design
     ui->tab->setStyleSheet(styleHelper::addProjectFont("white"));
@@ -146,16 +150,19 @@ void MainWindow::initUserMode(int id)
 
 
     //![init user's tables]
-    freeze_table = new FreezeTableWidget();
-    current_orders = new FreezeTableWidget();
+    tables[ui->tab_2] = new FreezeTableWidget(this);
+    tables[ui->tab_3] = new FreezeTableWidget(this);
 
-    freeze_table->init("SELECT КодЗаказа, СтатусЗаказа, АдресПолученияТовара, АдресДоставки FROM ИсторияПользователей WHERE "
+    // freeze_table = new FreezeTableWidget();
+    // current_orders = new FreezeTableWidget();
+
+    tables[ui->tab_2]->init("SELECT КодЗаказа, СтатусЗаказа, АдресПолученияТовара, АдресДоставки FROM ИсторияПользователей WHERE "
                        "КодКлиента = " + QString::number(id_user),
                        "SELECT КодЗаказа FROM ИсторияПользователей WHERE СтатусЗаказа = 'Выполнен' AND КодКлиента = " +
                            QString::number(id_user) + " AND КодЗаказа NOT IN (SELECT КодЗаказа FROM Отзыв WHERE КодКлиента = " + QString::number(id_user) + ");",
-                       [id_user = id, table = freeze_table](QModelIndex index)
+                       [id_user = id, table = tables[ui->tab_2], parent = this](QModelIndex index)
                        {
-                           ReviewForm* form = new ReviewForm(nullptr, 1, table->model()->data(table->model()->index(index.row(), 0)).toInt());
+                           ReviewForm* form = new ReviewForm(parent, 1, table->model()->data(table->model()->index(index.row(), 0)).toInt());
                            connect(form, &QDialog::finished, table,
                                    [table]()
                                    {
@@ -165,38 +172,108 @@ void MainWindow::initUserMode(int id)
                        },
                        "Дать отзыв"
                        );
-    current_orders->init("SELECT КодЗаказа, СтатусЗаказа, АдресПолученияТовара, АдресДоставки FROM ИсторияПользователей WHERE "
+    tables[ui->tab_3]->init("SELECT КодЗаказа, СтатусЗаказа, АдресПолученияТовара, АдресДоставки FROM ИсторияПользователей WHERE "
                          "КодКлиента = " + QString::number(id_user) + " AND СтатусЗаказа <> 'Выполнен'",
                          "SELECT КодЗаказа FROM ИсторияПользователей WHERE "
                          "КодКлиента = " + QString::number(id_user) + " AND СтатусЗаказа = 'Не принят' ",
-                         [table = current_orders, db = db_helper](QModelIndex index)
+                         [table = tables[ui->tab_3], db = db_helper, parent = this](QModelIndex index)
                          {
-                             correctOrderForm* form = new correctOrderForm(nullptr, table->model()->data(table->model()->index(index.row(), 0)).toInt());
+                             correctOrderForm* form = new correctOrderForm(parent, table->model()->data(table->model()->index(index.row(), 0)).toInt());
                              connect(form, &QDialog::finished, table,
                                      [table, db]()
                                      {
                                          table->updateValues();
-                                        // qDebug() << db->getDB().lastError();
                                      });
                              form->exec();
                          },
                          "Изменить"
 
                          );
-    freeze_table->setModel();
-    current_orders->setModel();
+
+    foreach(QWidget* key, tables.keys())
+    {
+        tables[key]->setModel();
+    }
+
+    // freeze_table->setModel();
+    // current_orders->setModel();
 
     ui->tab_2->setStyleSheet(styleHelper::addProjectFont("white"));
-    ui->gridLayout_7->addWidget(freeze_table, 2, 0, 2, 4);
+    ui->gridLayout_7->addWidget(tables[ui->tab_2], 2, 0, 2, 4);
 
     ui->tab_3->setStyleSheet(styleHelper::addProjectFont("white"));
-    ui->gridLayout_11->addWidget(current_orders, 2, 0, 2, 4);
+    ui->gridLayout_11->addWidget(tables[ui->tab_3], 2, 0, 2, 4);
+
     //![init user's tables]
 }
 
 void MainWindow::initCourierMode(int id)
 {
+    QPixmap pixmap1(":/resources/delivery_icon.png");
+    QIcon ButtonIcon1(pixmap1);
+    ui->pushButton_4->setIcon(ButtonIcon1);
+    ui->pushButton_4->setIconSize(ui->pushButton_4->size());
 
+    QPixmap pixmap2(":/resources/get_order_icon.png");
+    QIcon ButtonIcon2(pixmap2);
+    ui->pushButton_2->setIcon(ButtonIcon2);
+    ui->pushButton_2->setIconSize(ui->pushButton_2->size());
+
+    QPixmap pixmap3(":/resources/done_icon.png");
+    QIcon ButtonIcon3(pixmap3);
+    ui->pushButton_3->setIcon(ButtonIcon3);
+    ui->pushButton_3->setIconSize(ui->pushButton_3->size());
+
+    //![init menu buttons functional]
+    connect(ui->pushButton_2, &QPushButton::clicked, this,
+            [this]()
+            {
+                ui->tabWidget->setCurrentIndex(3);
+            });
+    connect(ui->pushButton_3, &QPushButton::clicked, this,
+            [this]()
+            {
+                ui->tabWidget->setCurrentIndex(4);
+            });
+    connect(ui->pushButton_4, &QPushButton::clicked, this,
+            [this]()
+            {
+                ui->tabWidget->setCurrentIndex(5);
+            });
+    //![init menu buttons functional]
+    //qDebug() << id;
+    tables[ui->tab_4] = new FreezeTableWidget(this);
+    tables[ui->tab_4]->init("SELECT КодЗаказа, НазваниеТарифа, АдресПолученияТовара, АдресДоставки, Вес FROM Заказ WHERE СтатусЗаказа = 'Не принят'",
+                            "SELECT КодЗаказа FROM Заказ WHERE "
+                            "СтатусЗаказа = 'Не принят' AND (НазваниеТарифа <> 'Экспресс' OR( НазваниеТарифа = 'Экспресс' AND "
+                            "(SELECT Курьер.КоличествоВыполненныхЗаказов FROM Курьер WHERE КодКурьера = " +QString::number(id) + ") > 20))",
+                            [table = tables[ui->tab_4], db = db_helper, parent = this, id_cur = id](QModelIndex index)
+                            {
+                                db->getDB().transaction();
+                                QSqlQuery qry;
+                                if(qry.exec("CALL public.courier_take_order(" + QString::number(id_cur) + ", " + table->model()->data(table->model()->index(index.row(), 0)).toString() +");"))
+                                {
+                                    db->getDB().commit();
+                                    QMessageBox::information(parent, "Успех!","Заказ успешно принят!", QMessageBox::Apply);
+                                }
+                                else
+                                {
+                                    db->getDB().rollback();
+                                    qDebug() << db->getDB().lastError().text();
+                                    qDebug() << qry.lastQuery();
+                                    QMessageBox::critical(parent, "Ошибка!","Не удалось принять заказ! ", QMessageBox::Apply);
+                                }
+                                table->updateValues();
+                            },
+                            "Взять заказ"
+                            );
+    foreach(QWidget* key, tables.keys())
+    {
+        tables[key]->setModel();
+    }
+
+    ui->tab_4->setStyleSheet(styleHelper::addProjectFont("white"));
+    ui->gridLayout_10->addWidget(tables[ui->tab_4], 2, 0, 2, 4);
 }
 
 void MainWindow::initManagerMode(int id)
@@ -214,6 +291,7 @@ void MainWindow::initDefaultStyle()
 //![init main window mode]
 void MainWindow::checkRole(Role user, int id)
 {
+    qDebug() << id;
     childs[0]->close(); //close authorization window
     this->show();
     role_user = user;
@@ -229,6 +307,7 @@ void MainWindow::checkRole(Role user, int id)
     case Role::ADMINISTRATOR:
         break;
     case Role::MANAGER:
+        initManagerMode(id);
         break;
     default:
         break;
@@ -299,9 +378,12 @@ void MainWindow::on_enterOrder_clicked()
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
     if(index == 1)
-        freeze_table->updateValues();
+        tables[ui->tabWidget->widget(index)]->updateValues();
+       // freeze_table->updateValues("", "");
     else if(index == 2)
-        current_orders->updateValues();
+        tables[ui->tabWidget->widget(index)]->updateValues();
+    else if(index == 3)
+        tables[ui->tabWidget->widget(index)]->updateValues();
 }
 
 

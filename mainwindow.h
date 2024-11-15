@@ -6,6 +6,7 @@
 #include "roles.h"
 #include "optionbutton.h"
 #include "freezetablewidget.h"
+#include <QMap>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -30,8 +31,9 @@ private:
 
     Ui::MainWindow *ui;
     QList <QWidget*> childs;
-    FreezeTableWidget* freeze_table;
-    FreezeTableWidget* current_orders;
+    QMap<QWidget*, FreezeTableWidget*> tables;
+    // FreezeTableWidget* freeze_table;
+    // FreezeTableWidget* current_orders;
     DatabaseConnector* db_helper;
     optionButton* optionManager;
 
