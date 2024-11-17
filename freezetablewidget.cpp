@@ -10,23 +10,30 @@
 #include <QLineEdit>
 #include <QHBoxLayout>
 
-FreezeTableWidget::FreezeTableWidget(QWidget* parent) : data_query(""), query_sort("")
+FreezeTableWidget::FreezeTableWidget(QWidget* parent) : data_query("")
 {
     ParentX = parent->pos().x();
     ParentY = parent->pos().y();
 }
 
 //! [constructor]
-void FreezeTableWidget::init(QString data_query, QString query_sort, std::function<void(QModelIndex)> func_delegate, QString text_on_delegate)
+void FreezeTableWidget::init(QString data_query,
+                             QList<QString> queries_sort, QList<std::function<void(QModelIndex)>> funcs_delegate, QList<QString> texts_on_delegate)
 {
+    if(funcs_delegate.size() != texts_on_delegate.size())
+        return;
     this->data_query = data_query;
-    this->query_sort = query_sort;
-
+    if(queries_sort.empty())
+    {
+        for(int i = 0; i < funcs_delegate.size(); ++i)
+            this->queries_sort.append(data_query);
+    }
+    else this->queries_sort = std::move(queries_sort);
     frozenTableView = new QTableView(this);
     sql_model = new QSqlTableModel(this);
-    delegate = new CustomDelegateView(this, text_on_delegate);
+    foreach(QString line, texts_on_delegate)
+        delegates.append(new CustomDelegateView(this, line));
     proxyModel = new QSortFilterProxyModel(sql_model);
-
 
     //connect the headers and scrollbars of both tableviews together
     connect(horizontalHeader(),&QHeaderView::sectionResized, this,
@@ -37,14 +44,17 @@ void FreezeTableWidget::init(QString data_query, QString query_sort, std::functi
             verticalScrollBar(), &QAbstractSlider::setValue);
     connect(verticalScrollBar(), &QAbstractSlider::valueChanged,
             frozenTableView->verticalScrollBar(), &QAbstractSlider::setValue);
-    connect(delegate, &CustomDelegateView::signalClicked, delegate, func_delegate);
+    for(int i = 0; i < funcs_delegate.size(); ++i)
+        connect(delegates[i], &CustomDelegateView::signalClicked, delegates[i], funcs_delegate[i]);
 }
 //! [constructor]
 
 FreezeTableWidget::~FreezeTableWidget()
 {
     delete frozenTableView;
-    delete delegate;
+    foreach(CustomDelegateView* delegate, delegates) {
+        delete delegate;
+    }
     delete sql_model;
     delete proxyModel;
 }
@@ -102,7 +112,6 @@ void FreezeTableWidget::setModel()
         sortWidget->show();
         connect(this->horizontalHeader(), &QHeaderView::sectionClicked, [this, sortWidget, section](int clicked)
         {
-            //sortWidget->deleteLater();
             proxyModel->setFilterFixedString("");
             proxyModel->sort(section);
         });
@@ -111,12 +120,9 @@ void FreezeTableWidget::setModel()
 }
 
 
-void FreezeTableWidget::updateValues(QString data_qry, QString qry_sort)
+void FreezeTableWidget::updateValues()
 {
-    if(data_qry == "" and qry_sort == "")
-        init_data(this->data_query, this->query_sort);
-    else
-        init_data(data_qry, qry_sort);
+    init_data();
 }
 
 //! [init part1]
@@ -238,32 +244,38 @@ void FreezeTableWidget::updateFrozenTableGeometry()
                                  viewport()->height()+horizontalHeader()->height());
 }
 
-void FreezeTableWidget::init_data(QString data_qry, QString qry_sort)
+void FreezeTableWidget::init_data()
 {
     //qDebug() << this->data_query;
    // qDebug() << this->query_sort;
-   // qDebug() << data_qry;
-   // qDebug() << qry_sort;
-    delegate->clearData();
+   // qDebug() << data_query;
+    //qDebug() << queries_sort.size();
+    foreach(CustomDelegateView* del, delegates)
+        del->clearData();
     sql_model->clear();
     QSqlQuery qry;
-    if(!qry.exec(data_qry)) {qDebug() << "data_qry"; }
+    if(!qry.exec(data_query)) {qDebug() << "data_qry"; }
     sql_model->setQuery(std::move(qry));
-    QSqlQuery qry_review;
-    if(!qry_review.exec(qry_sort)) {qDebug() << "review errror";}
-    QSet<int> existingOrderIds;
-    while(qry_review.next()) {
-        existingOrderIds.insert(qry_review.value(0).toInt());
+    for(int i = 0; i < delegates.size(); ++i)
+    {
+        sql_model->insertColumns(sql_model->columnCount(), 1);
+        sql_model->setHeaderData(sql_model->columnCount()-1, Qt::Horizontal, tr("                          "));
     }
-    sql_model->insertColumns(sql_model->columnCount(), 1);
-    sql_model->setHeaderData(sql_model->columnCount()-1, Qt::Horizontal, tr("                      "));
-
-    //init buttons for making feedback
-    for (int row = 0; row < this->model()->rowCount(); ++row) {
-        int orderId = this->model()->data(this->model()->index(row, 0)).toInt();
-        if (existingOrderIds.contains(orderId)) {
-            delegate->addButtonIndexes(this->model()->index(row, sql_model->columnCount()-1));
+    for(int i = 0; i < delegates.size(); ++i)
+    {
+        QSqlQuery qry_review;
+        //qDebug() << queries_sort[i];
+        if(!qry_review.exec(queries_sort[i])) {qDebug() << "review errror";}
+        QSet<int> existingOrderIds;
+        while(qry_review.next()) {
+            existingOrderIds.insert(qry_review.value(0).toInt());
         }
+        for (int row = 0; row < this->model()->rowCount(); ++row) {
+            int orderId = this->model()->data(this->model()->index(row, 0)).toInt();
+            if (existingOrderIds.contains(orderId)) {
+                delegates[i]->addButtonIndexes(this->model()->index(row, sql_model->columnCount()-(delegates.size()-i)));
+            }
+        }
+        this->setItemDelegateForColumn(sql_model->columnCount()-(delegates.size()-i), delegates[i]);
     }
-    this->setItemDelegate(delegate);
 }

@@ -6,6 +6,7 @@
 #include "buttondelegate.h"
 #include <QSortFilterProxyModel>
 #include <functional>
+#include <QList>
 
 class FreezeTableWidget : public QTableView {
     Q_OBJECT
@@ -14,9 +15,9 @@ public:
     FreezeTableWidget(QWidget* parent = nullptr);
     ~FreezeTableWidget();
     void setModel();
-    void updateValues(QString data_query = "", QString query_sort = "");
+    void updateValues();
     void init(QString data_query,
-              QString query_sort, std::function<void(QModelIndex)> func_delegate, QString text_on_delegate = "");
+              QList<QString> queries_sort, QList<std::function<void(QModelIndex)>> funcs_delegate, QList<QString> texts_on_delegate);
 protected:
     void resizeEvent(QResizeEvent *event) override;
     QModelIndex moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers) override;
@@ -24,16 +25,16 @@ protected:
 
 private:
     QString data_query;
-    QString query_sort;
+    QList<QString> queries_sort;
     QTableView *frozenTableView;
     void init_style();
     void updateFrozenTableGeometry();
     QSqlTableModel* sql_model;
-    void init_data(QString data_query, QString query_sort);
+    void init_data();
 
     int ParentX;
     int ParentY;
-    CustomDelegateView* delegate;
+    QList<CustomDelegateView*> delegates;
     QSortFilterProxyModel *proxyModel;
 private slots:
     void updateSectionWidth(int logicalIndex, int oldSize, int newSize);

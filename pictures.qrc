@@ -11,5 +11,9 @@
         <file>resources/icons8-star-48-.png</file>
         <file>resources/icons8-star-48-full.png</file>
         <file>resources/get_order_icon.png</file>
+        <file>resources/re-enter-icon.png</file>
+        <file>resources/data_analysis_icon.png</file>
+        <file>resources/review_check_icon.png</file>
+        <file>resources/search_order_icon.png</file>
     </qresource>
 </RCC>
