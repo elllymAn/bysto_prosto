@@ -37,12 +37,12 @@ void ReviewForm::on_pushButton_clicked()
 {
     if(ui->plainTextEdit->toPlainText().length() > 190)
     {
-        QMessageBox::critical(nullptr, "Ошибка! ","Слишком большой отзыв (максимум 190 символов)!", QMessageBox::Apply);
+        QMessageBox::critical(this, "Ошибка! ","Слишком большой отзыв (максимум 190 символов)!", QMessageBox::Apply);
         return;
     }
     if(enteredRating == -1)
     {
-        QMessageBox::critical(nullptr, "Ошибка! ","Необходимо установить оценку!", QMessageBox::Apply);
+        QMessageBox::critical(this, "Ошибка! ","Необходимо установить оценку!", QMessageBox::Apply);
         return;
     }
     QSqlQuery qry;
@@ -59,11 +59,11 @@ void ReviewForm::on_pushButton_clicked()
     qry.bindValue(":order", id_order_review);
     if(!qry.exec())
     {
-        QMessageBox::critical(nullptr, "Ошибка! ","Не удалось добавить отзыв!", QMessageBox::Apply);
+        QMessageBox::critical(this, "Ошибка! ","Не удалось добавить отзыв!", QMessageBox::Apply);
     }
     else
     {
-        QMessageBox::information(nullptr, "Успех ","Отзыв успешно добавлен!", QMessageBox::Apply);
+        QMessageBox::information(this, "Успех ","Отзыв успешно добавлен!", QMessageBox::Apply);
         this->close();
         delete this;
     }

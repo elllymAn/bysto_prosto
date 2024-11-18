@@ -5,8 +5,8 @@
 #include "freezetablewidget.h"
 #include "roles.h"
 #include "optionbutton.h"
-#include "freezetablewidget.h"
 #include <QMap>
+#include "charts_controller.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -32,16 +32,12 @@ private:
     Ui::MainWindow *ui;
     QList <QWidget*> childs;
     QMap<QWidget*, FreezeTableWidget*> tables;
-    // FreezeTableWidget* freeze_table;
-    // FreezeTableWidget* current_orders;
     DatabaseConnector* db_helper;
     optionButton* optionManager;
-
-
+    charts_controller* controller;
     int id_user;
     Role role_user;
 private slots:
-
     void checkRole(Role type, int id);
     void on_enterOrder_clicked();
     void on_tabWidget_currentChanged(int index);

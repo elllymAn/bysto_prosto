@@ -23,9 +23,15 @@ set(PROJECT_SOURCES
 )
 
 find_package(Qt6 REQUIRED COMPONENTS Sql)
+find_package(Qt6Charts REQUIRED COMPONENTS Charts)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(courier_DB
+
+# target_sources(courier_DB
+#   PRIVATE
+#     charts_controller.h charts_controller.cpp
+# )
+qt_add_executable(courier_DB
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         passwordline.h passwordline.cpp
@@ -43,6 +49,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         reviewform.h reviewform.cpp reviewform.ui
         correctorderform.h correctorderform.cpp correctorderform.ui
         payment.h payment.cpp payment.ui
+        change_current_courier_procent.h change_current_courier_procent.cpp change_current_courier_procent.ui
+        charts_controller.h charts_controller.cpp
+        registrationform.h registrationform.cpp registrationform.ui
 
 
 
@@ -69,7 +78,7 @@ else()
     qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 endif()
 
-target_link_libraries(courier_DB PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Sql)
+target_link_libraries(courier_DB PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Sql Qt${QT_VERSION_MAJOR}::Charts)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

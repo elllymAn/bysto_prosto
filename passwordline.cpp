@@ -39,7 +39,3 @@ void PasswordLine::focusOutEvent(QFocusEvent *event) {
     QLineEdit::focusOutEvent(event);
 }
 
-//void PasswordLine::keyPressEvent(QKeyEvent *event)
-//{
-//
-//}

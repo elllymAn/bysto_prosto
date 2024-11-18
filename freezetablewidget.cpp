@@ -18,7 +18,9 @@ FreezeTableWidget::FreezeTableWidget(QWidget* parent) : data_query("")
 
 //! [constructor]
 void FreezeTableWidget::init(QString data_query,
-                             QList<QString> queries_sort, QList<std::function<void(QModelIndex)>> funcs_delegate, QList<QString> texts_on_delegate)
+                             QList<QString> queries_sort,
+                             QList<std::function<void(QModelIndex)>> funcs_delegate,
+                             QList<QString> texts_on_delegate)
 {
     if(funcs_delegate.size() != texts_on_delegate.size())
         return;
@@ -128,12 +130,9 @@ void FreezeTableWidget::updateValues()
 //! [init part1]
 void FreezeTableWidget::init_style()
 {
-   // frozenTableView->setModel(model());
     frozenTableView->setFocusPolicy(Qt::NoFocus);
     frozenTableView->verticalHeader()->hide();
     frozenTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-   // this->setSortingEnabled(true);
-   // frozenTableView->setSortingEnabled(true);
     this->verticalHeader()->hide();
     this->setStyleSheet("QTableView { border: none;"
                         "background-color: #D9D9D9;"
@@ -167,8 +166,7 @@ void FreezeTableWidget::init_style()
                                    "font-family: Marmelad;"
                                    "font-size: 20px;"
                                    "border: none;"
-                                   "}"); //for demo purposes
-    //frozenTableView->setSelectionModel(selectionModel());
+                                   "}");
     for (int col = 1; col < model()->columnCount(); ++col)
         frozenTableView->setColumnHidden(col, true);
 
@@ -177,7 +175,6 @@ void FreezeTableWidget::init_style()
     frozenTableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     frozenTableView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     frozenTableView->show();
-   // this->setSelectionBehavior(QAbstractItemView::SelectRows);
     updateFrozenTableGeometry();
     this->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     frozenTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -246,10 +243,6 @@ void FreezeTableWidget::updateFrozenTableGeometry()
 
 void FreezeTableWidget::init_data()
 {
-    //qDebug() << this->data_query;
-   // qDebug() << this->query_sort;
-   // qDebug() << data_query;
-    //qDebug() << queries_sort.size();
     foreach(CustomDelegateView* del, delegates)
         del->clearData();
     sql_model->clear();
@@ -264,7 +257,6 @@ void FreezeTableWidget::init_data()
     for(int i = 0; i < delegates.size(); ++i)
     {
         QSqlQuery qry_review;
-        //qDebug() << queries_sort[i];
         if(!qry_review.exec(queries_sort[i])) {qDebug() << "review errror";}
         QSet<int> existingOrderIds;
         while(qry_review.next()) {

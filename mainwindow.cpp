@@ -12,16 +12,19 @@
 #include "reviewform.h"
 #include "correctorderform.h"
 #include "payment.h"
+#include "change_current_courier_procent.h"
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow), id_user(-1),
-    optionManager(nullptr), //freeze_table(nullptr),
+    optionManager(nullptr),
     db_helper(nullptr)
 {
     ui->setupUi(this);
     QFontDatabase::addApplicationFont(":/fonts/Marmelad-Regular.ttf");
     db_helper = new DatabaseConnector();
+    controller = new charts_controller(this);
     db_helper->connect("127.0.0.1", "courier_db", "postgres", "1234", 5432);
     initDefaultStyle();
     authorization();
@@ -35,8 +38,7 @@ MainWindow::~MainWindow()
     foreach (QWidget* key, tables) {
         delete tables[key];
     }
-  //  delete freeze_table;
- //   delete current_orders;
+    delete controller;
     foreach (QWidget* child, childs) {
         delete child;
     }
@@ -62,7 +64,6 @@ void MainWindow::authorization()
 
 void MainWindow::initUserMode(int id)
 {
-    ui->tabWidget->setCurrentIndex(0);
     //![init styles]
     QPixmap pixmap1(":/resources/clip_icon.png");
     QIcon ButtonIcon1(pixmap1);
@@ -133,7 +134,7 @@ void MainWindow::initUserMode(int id)
         le->setStyleSheet(styleHelper::addTextStyle());
     }
     ui->telephone->setInputMask("80000000000");
-    ui->weight->setValidator(new QRegularExpressionValidator(QRegularExpression("^\\d+(\\.\\d+)?$"), ui->weight));
+    ui->weight->setValidator(new QRegularExpressionValidator(QRegularExpression("^\\d{1,3}(\\.\\d{1,2})?$"), ui->weight));
     //![init styles]
 
 
@@ -167,9 +168,6 @@ void MainWindow::initUserMode(int id)
     //![init user's tables]
     tables[ui->tab_2] = new FreezeTableWidget(this);
     tables[ui->tab_3] = new FreezeTableWidget(this);
-
-    // freeze_table = new FreezeTableWidget();
-    // current_orders = new FreezeTableWidget();
 
     tables[ui->tab_2]->init("SELECT КодЗаказа, СтатусЗаказа, АдресПолученияТовара, АдресДоставки FROM ИсторияПользователей WHERE "
                        "КодКлиента = " + QString::number(id_user),
@@ -218,20 +216,21 @@ void MainWindow::initUserMode(int id)
         tables[key]->setModel();
     }
 
-    // freeze_table->setModel();
-    // current_orders->setModel();
-
     ui->tab_2->setStyleSheet(styleHelper::addProjectFont("white"));
     ui->gridLayout_7->addWidget(tables[ui->tab_2], 2, 0, 2, 4);
 
     ui->tab_3->setStyleSheet(styleHelper::addProjectFont("white"));
     ui->gridLayout_11->addWidget(tables[ui->tab_3], 2, 0, 2, 4);
-    this->on_tabWidget_currentChanged(ui->tabWidget->currentIndex());
     //![init user's tables]
+
+
+    ui->tabWidget->setCurrentIndex(0);
+    this->on_tabWidget_currentChanged(ui->tabWidget->currentIndex());
 }
 
 void MainWindow::initCourierMode(int id)
 {
+    //![init menu buttons]
     QPixmap pixmap1(":/resources/delivery_icon.png");
     QIcon ButtonIcon1(pixmap1);
     ui->pushButton_4->setIcon(ButtonIcon1);
@@ -251,7 +250,7 @@ void MainWindow::initCourierMode(int id)
     QIcon ButtonIcon4(pixmap4);
     ui->pushButton->setIcon(ButtonIcon4);
     ui->pushButton->setIconSize(ui->pushButton->size());
-
+    //![init menu buttons]
     //![init menu buttons functional]
     connect(ui->pushButton_2, &QPushButton::clicked, this,
             [this]()
@@ -274,7 +273,8 @@ void MainWindow::initCourierMode(int id)
                 authorization();
             });
     //![init menu buttons functional]
-    //qDebug() << id;
+
+    //![init functional tables]
     tables[ui->tab_4] = new FreezeTableWidget(this);
     tables[ui->tab_4]->init("SELECT Заказ.КодЗаказа, Заказ.НазваниеТарифа, Заказ.АдресПолученияТовара, Заказ.АдресДоставки, Заказ.Вес, Заказ.ПроцентКурьера*Тариф.Цена/100 AS Ставка "
                             "FROM Заказ JOIN Тариф ON Заказ.НазваниеТарифа = Тариф.НазваниеТарифа "
@@ -369,23 +369,123 @@ void MainWindow::initCourierMode(int id)
 
     ui->tab_6->setStyleSheet(styleHelper::addProjectFont("white"));
     ui->gridLayout_15->addWidget(tables[ui->tab_6], 7, 0, 7, 6);
+    //![init functional tables]
 
-
+    ui->tabWidget->setCurrentIndex(3);
     this->on_tabWidget_currentChanged(ui->tabWidget->currentIndex());
 }
 
 void MainWindow::initManagerMode(int id)
 {
+    //![init menu button]
+    QPixmap pixmap1(":/resources/data_analysis_icon.png");
+    QIcon ButtonIcon1(pixmap1);
+    ui->pushButton_4->setIcon(ButtonIcon1);
+    ui->pushButton_4->setIconSize(ui->pushButton_4->size());
 
+    QPixmap pixmap2(":/resources/get_order_icon.png");
+    QIcon ButtonIcon2(pixmap2);
+    ui->pushButton_2->setIcon(ButtonIcon2);
+    ui->pushButton_2->setIconSize(ui->pushButton_2->size());
+
+    QPixmap pixmap3(":/resources/search_order_icon.png");
+    QIcon ButtonIcon3(pixmap3);
+    ui->pushButton_3->setIcon(ButtonIcon3);
+    ui->pushButton_3->setIconSize(ui->pushButton_3->size());
+
+    QPixmap pixmap4(":/resources/re-enter-icon.png");
+    QIcon ButtonIcon4(pixmap4);
+    ui->pushButton->setIcon(ButtonIcon4);
+    ui->pushButton->setIconSize(ui->pushButton->size());
+    //![init menu button]
+
+    //![init menu buttons functional]
+    connect(ui->pushButton_4, &QPushButton::clicked, this,
+            [this]()
+            {
+                ui->tabWidget->setCurrentIndex(7);
+            });
+    connect(ui->pushButton_2, &QPushButton::clicked, this,
+            [this]()
+            {
+                ui->tabWidget->setCurrentIndex(8);
+            });
+    connect(ui->pushButton_3, &QPushButton::clicked, this,
+            [this]()
+            {
+                ui->tabWidget->setCurrentIndex(6);
+            });
+    connect(ui->pushButton, &QPushButton::clicked, this,
+            [this]()
+            {
+                authorization();
+            });
+    //![init menu buttons functional]
+
+    //![init functional elements]
+    tables[ui->tab_7] = new FreezeTableWidget(this);
+    tables[ui->tab_7]->init("SELECT Заказ.КодЗаказа, Заказ.НазваниеТарифа, Заказ.ПроцентКурьера "
+                            "FROM Заказ WHERE СтатусЗаказа = 'Не принят'",
+                            {},
+                            {
+                                [table = tables[ui->tab_7], parent = this](QModelIndex index)
+                                {
+                                    change_current_courier_procent* form = new change_current_courier_procent(parent, table->model()->data(table->model()->index(index.row(), 2)).toInt(), table->model()->data(table->model()->index(index.row(), 0)).toInt());
+                                    connect(form, &QDialog::finished, table,
+                                        [table]()
+                                        {
+                                            table->updateValues();
+                                        });
+                                    form->exec();
+                                }
+                            },
+                            {
+                                "Изменить проц-т"
+                            });
+
+    tables[ui->tab_9] = new FreezeTableWidget(this);
+    tables[ui->tab_9]->init("select Клиент.ФИО AS ФИОКлиента, Клиент.НомерТелефона AS НомерТелефонаКлиента, "
+                            "Заказ.КодЗаказа, Отзыв.Описание AS ОписаниеОтзыва, Отзыв.Оценка AS ОценкаДоставки "
+                            "FROM Отзыв JOIN Заказ ON Отзыв.КодЗаказа = Заказ.КодЗаказа "
+                            "JOIN Клиент ON Клиент.КодКлиента = Отзыв.КодКлиента",
+                            {},
+                            {},
+                            {});
+
+    controller->init("SELECT ДатаЗаказа, COUNT(*) FROM Заказ GROUP BY ДатаЗаказа ORDER BY ДатаЗаказа ASC",
+                     "SELECT СтатусЗаказа, COUNT(*) FROM Заказ GROUP BY СтатусЗаказа");
+
+
+    foreach(QWidget* key, tables.keys())
+    {
+        tables[key]->setModel();
+    }
+
+    ui->tab_7->setStyleSheet(styleHelper::addProjectFont("white"));
+    ui->gridLayout_17->addWidget(tables[ui->tab_7], 2, 0, 2, 4);
+
+    ui->tab_8->setStyleSheet(styleHelper::addProjectFont("white"));
+    ui->gridLayout_19->addWidget(controller->line_view(), 2, 0, 2, 4);
+    ui->gridLayout_19->addWidget(controller->bar_view(), 4, 0, 4, 4);
+
+    ui->tab_9->setStyleSheet(styleHelper::addProjectFont("white"));
+    ui->gridLayout_21->addWidget(tables[ui->tab_9], 2, 0, 2, 4);
+
+    controller->line_view()->setMinimumSize(500, 300);
+    //![init functional elements]
+
+    ui->tabWidget->setCurrentIndex(6);
+    this->on_tabWidget_currentChanged(ui->tabWidget->currentIndex());
 }
 
+//![init default style settings for form]
 void MainWindow::initDefaultStyle()
 {
     ui->tabWidget->tabBar()->hide();
     ui->tabWidget->setStyleSheet("border-style: none");
     ui->tabWidget->setDocumentMode(true);
 }
-
+//![init default style settings for form]
 //![init main window mode]
 void MainWindow::checkRole(Role user, int id)
 {
@@ -401,8 +501,6 @@ void MainWindow::checkRole(Role user, int id)
         break;
     case Role::COURIER:
         initCourierMode(id);
-        break;
-    case Role::ADMINISTRATOR:
         break;
     case Role::MANAGER:
         initManagerMode(id);
@@ -426,6 +524,11 @@ void MainWindow::on_enterOrder_clicked()
         QMessageBox::critical(this, "Ошибка! ","Не все поля заполнены корректно", QMessageBox::Apply);
         return;
     }
+    if(ui->weight->text().toDouble() > 10.0 and optionManager->name_of_button(optionManager->active) == "Экспресс")
+    {
+        QMessageBox::critical(this, "Ошибка! ","Максимально доступный вес в данном тарифек равен 10 кг", QMessageBox::Apply);
+        return;
+    }
     Payment* form = new Payment(nullptr, ui->price->text());
     if(form->exec() != QDialog::Accepted)
     {
@@ -438,22 +541,19 @@ void MainWindow::on_enterOrder_clicked()
     qry.prepare("INSERT INTO Заказ (КодКлиента,НазваниеТарифа, Вес, АдресПолученияТовара, АдресДоставки, ФИОПолучателя, НомерТелефонаПолучателя) "
                 "VALUES (:id_client, :tariff, :weight, :address_get, :address_del, :fio, :telephone)");
 
-    //qDebug() << id_user;
-   // qDebug() << optionManager->name_of_button(optionManager->active);
-   // qDebug() << ui->weight->text();
-   // qDebug() << ui->your_address->text();
-   // qDebug() << ui->Address->text();
-   // qDebug() << ui->FIO->text();
-   // qDebug() << ui->telephone->text();
-    // Привязка значений
-
     qry.bindValue(":id_client", id_user);
     qry.bindValue(":tariff", optionManager->name_of_button(optionManager->active));
     qry.bindValue(":weight", ui->weight->text().toDouble());
     qry.bindValue(":address_get", ui->your_address->text());
     qry.bindValue(":address_del", ui->Address->text());
-    qry.bindValue(":fio", ui->FIO->text());
-    qry.bindValue(":telephone", ui->telephone->text());
+    if(ui->FIO->text() == "")
+        qry.bindValue(":fio", QVariant());
+    else
+        qry.bindValue(":fio", ui->FIO->text());
+    if(ui->telephone->text() == "8")
+        qry.bindValue(":telephone", QVariant());
+    else
+        qry.bindValue(":telephone", ui->telephone->text());
 
     ui->weight->setText("");
     ui->your_address->setText("");
@@ -475,26 +575,33 @@ void MainWindow::on_enterOrder_clicked()
 
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
-    if(index == 1)
-        tables[ui->tabWidget->widget(index)]->updateValues();
-    else if(index == 2)
-        tables[ui->tabWidget->widget(index)]->updateValues();
-    else if(index == 3)
-        tables[ui->tabWidget->widget(index)]->updateValues();
-    else if(index == 4)
-        tables[ui->tabWidget->widget(index)]->updateValues();
-    else if(index == 5)
+    switch(index)
     {
-        QSqlQuery qry;
-        qry.exec("SELECT AVG(Отзыв.Оценка) "
-                 "FROM ВРаботе JOIN Отзыв ON ВРаботе.КодЗаказа = Отзыв.КодЗаказа  "
-                 "WHERE ВРаботе.КодКурьера = " + QString::number(id_user));
-        qry.next();
-        ui->rating->setText(qry.value(0).toString());
-        qry.exec("SELECT КоличествоВыполненныхЗаказов FROM Курьер WHERE КодКурьера = " + QString::number(id_user));
-        qry.next();
-        ui->do_order->setText(qry.value(0).toString());
-        tables[ui->tabWidget->widget(index)]->updateValues();
+        case 5:
+        {
+            QSqlQuery qry;
+            qry.exec("SELECT AVG(Отзыв.Оценка) "
+                     "FROM ВРаботе JOIN Отзыв ON ВРаботе.КодЗаказа = Отзыв.КодЗаказа  "
+                     "WHERE ВРаботе.КодКурьера = " + QString::number(id_user));
+            qry.next();
+            ui->rating->setText(qry.value(0).toString());
+            qry.exec("SELECT КоличествоВыполненныхЗаказов FROM Курьер WHERE КодКурьера = " + QString::number(id_user));
+            qry.next();
+            ui->do_order->setText(qry.value(0).toString());
+            tables[ui->tabWidget->widget(index)]->updateValues();
+            break;
+        }
+        case 7:
+        {
+            controller->updateValues();
+            break;
+        }
+        case 0:
+            break;
+        default:
+        {
+            tables[ui->tabWidget->widget(index)]->updateValues();
+        }
     }
 }
 

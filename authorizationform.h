@@ -19,7 +19,6 @@ public:
 
 protected:
     void paintEvent(QPaintEvent* event) override;
-   // DatabaseConnector* db_helper;
 private slots:
     void on_enter_button_clicked();
 private:

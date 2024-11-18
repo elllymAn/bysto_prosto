@@ -5,15 +5,19 @@
 #include "stylehelper.h"
 #include "passwordline.h"
 #include <QMessageBox>
+#include "registrationform.h"
 
 AuthorizationForm::AuthorizationForm(MainWindow *parent)
     : QWidget(nullptr)
     , ui(new Ui::AuthorizationForm)
 {
     ui->setupUi(this);
-
-    //db_helper = parent->getDBConnector();
     setWindowStyle();
+    connect(ui->pushButton, &QPushButton::clicked, this, [this]()
+            {
+                registrationForm* form = new registrationForm();
+                form->exec();
+            });
 }
 
 AuthorizationForm::~AuthorizationForm()
@@ -40,6 +44,7 @@ void AuthorizationForm::setWindowStyle()
     addBackgroundGradient();
     ui->hi_label->setStyleSheet(styleHelper::addProjectFont("white"));
     ui->enter_label->setStyleSheet(styleHelper::addProjectFont("rgba(0,0,0, 0.3)"));
+    //ui->pushButton->setStyleSheet(styleHelper::addProjectFont("rgba(0,0,0, 0.3)"));
     ui->password->setStyleSheet(styleHelper::addProjectFont("black"));
     ui->telephone->setStyleSheet(styleHelper::addProjectFont("black"));
     this->setStyleSheet(styleHelper::addTextStyle());
@@ -71,11 +76,9 @@ void AuthorizationForm::on_enter_button_clicked()
     {
         while(qry.next())
         {
-            //qDebug() << qry.value(0).toString();
-            //qDebug() << qry.value(1).toString();
             if(qry.value(0).toString() == ui->lineEdit_2->text() && qry.value(1).toString() == passwordLine->text())
             {
-                if(qry.value(2).toString() == "151")
+                if(qry.value(2).toInt() == 151)
                 {
                     emit RoleDefine(Role::MANAGER, qry.value(2).toInt());
                     return;
@@ -89,8 +92,6 @@ void AuthorizationForm::on_enter_button_clicked()
     {
         while(qry.next())
         {
-           // qDebug() << qry.value(0).toString();
-           // qDebug() << qry.value(1).toString();
             if(qry.value(0).toString() == ui->lineEdit_2->text() && qry.value(1).toString() == passwordLine->text())
             {
                 emit RoleDefine(Role::COURIER, qry.value(2).toInt());
@@ -100,7 +101,7 @@ void AuthorizationForm::on_enter_button_clicked()
     }
     else
     {
-        qDebug() << "PostgreSQL_authorization_error: "; //<< db_helper->getDB().lastError();
+        qDebug() << "PostgreSQL_authorization_error: ";
     }
     QMessageBox::information(this, "Ошибка","Неверно введены данные!", QMessageBox::Apply);
 }

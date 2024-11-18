@@ -5,8 +5,7 @@ enum Role
 {
     USER,
     MANAGER,
-    COURIER,
-    ADMINISTRATOR
+    COURIER
 };
 
 

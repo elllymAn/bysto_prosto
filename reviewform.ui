@@ -30,7 +30,6 @@
 QPushButton
 {
 border-style: none;
-background-color: #01327D;
 }</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">

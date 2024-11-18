@@ -20,7 +20,6 @@ protected:
     void leaveEvent(QEvent *event);
     void focusInEvent(QFocusEvent *event);
     void focusOutEvent(QFocusEvent *event);
-    //void keyPressEvent(QKeyEvent* event);
 private:
     QToolButton *button;
 };

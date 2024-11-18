@@ -17,7 +17,5 @@ int main(int argc, char *argv[])
         }
     }
     MainWindow w;
-    //correctOrderForm v(nullptr, -1);
-    //v.open();
     return a.exec();
 }

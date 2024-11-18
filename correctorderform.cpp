@@ -26,7 +26,6 @@ void correctOrderForm::init()
     palette.setBrush(QPalette::Window, brush);
     setPalette(palette);
 
-    //this->setStyleSheet(styleHelper::addProjectFont("white"));
     foreach (QLabel* l, this->findChildren<QLabel*>()) {
         l->setStyleSheet(styleHelper::addProjectFont("white"));
     }
@@ -57,7 +56,6 @@ void correctOrderForm::setDataIntoLineEdit()
 
 void correctOrderForm::on_pushButton_clicked()
 {
-    //qDebug() << id_order;
     int decision = QMessageBox::warning(this, "Вы уверены?","Вы уверены, что хотите изменить данные?", QMessageBox::Yes | QMessageBox::No);
     if (decision == QMessageBox::Yes) {
         QSqlQuery qry;
@@ -68,13 +66,6 @@ void correctOrderForm::on_pushButton_clicked()
                     "ФИОПолучателя = :fio, "
                     "НомерТелефонаПолучателя = :telephone "
                     "WHERE КодЗаказа = :id_order;");
-
-        qDebug() << ui->weight->text().toDouble();
-        qDebug() << ui->address_get->text();
-        qDebug() << ui->address_del->text();
-        qDebug() << ui->fio->text();
-        qDebug() << ui->telephone->text();
-        qDebug() << id_order;
 
         qry.bindValue(":weight", ui->weight->text().toDouble());  // Привязываем вес
         qry.bindValue(":a_get", ui->address_get->text());        // Привязываем адрес получения товара
@@ -92,7 +83,6 @@ void correctOrderForm::on_pushButton_clicked()
         {
             QMessageBox::information(this, "Успех ","Заказ успешно добавлен!", QMessageBox::Apply);
             this->close();
-            //qDebug() << qry.lastError().driverText();
             delete this;
         }
     }
