@@ -24,6 +24,7 @@ set(PROJECT_SOURCES
 
 find_package(Qt6 REQUIRED COMPONENTS Sql)
 find_package(Qt6Charts REQUIRED COMPONENTS Charts)
+find_package(Qt6Network REQUIRED COMPONENTS Network)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 
@@ -52,9 +53,7 @@ qt_add_executable(courier_DB
         change_current_courier_procent.h change_current_courier_procent.cpp change_current_courier_procent.ui
         charts_controller.h charts_controller.cpp
         registrationform.h registrationform.cpp registrationform.ui
-
-
-
+        mapdistancecalculator.h mapdistancecalculator.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET courier_DB APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -78,7 +77,7 @@ else()
     qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 endif()
 
-target_link_libraries(courier_DB PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Sql Qt${QT_VERSION_MAJOR}::Charts)
+target_link_libraries(courier_DB PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Sql Qt${QT_VERSION_MAJOR}::Charts Qt${QT_VERSION_MAJOR}::Network)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

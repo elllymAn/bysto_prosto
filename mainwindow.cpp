@@ -13,7 +13,7 @@
 #include "correctorderform.h"
 #include "payment.h"
 #include "change_current_courier_procent.h"
-
+#include <QEventLoop>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -42,6 +42,7 @@ MainWindow::~MainWindow()
     foreach (QWidget* child, childs) {
         delete child;
     }
+    delete yandex_map_length_controller;
 }
 
 DatabaseConnector *MainWindow::getDBConnector()
@@ -87,12 +88,11 @@ void MainWindow::initUserMode(int id)
 
     //order menu design
     ui->tab->setStyleSheet(styleHelper::addProjectFont("white"));
-    ui->price->setStyleSheet("QLabel{"
+   /* ui->price->setStyleSheet("QLabel{"
                              "font-family: Marmelad;"
                              "font-size : 20 px;"
                              "color: #69E0FE;"
-                             "}");
-
+                             "}");*/
     optionManager = new optionButton();
     QList<QPushButton*> buttons = ui->tab->findChildren<QPushButton*>();
     foreach (QPushButton* button , buttons) {
@@ -100,7 +100,7 @@ void MainWindow::initUserMode(int id)
         {
             optionManager->addButton(button);
             button->setStyleSheet(styleHelper::addPushButtonStyle2());
-            connect(button, &QPushButton::clicked, this,
+            /*connect(button, &QPushButton::clicked, this,
                 [this]()
                 {
                         if(optionManager->active == ui->base)
@@ -123,7 +123,7 @@ void MainWindow::initUserMode(int id)
                         {
                             ui->price->setText("1500");
                         }
-                });
+                });*/
         }
     }
     ui->enterOrder->setStyleSheet(styleHelper::addPushButtonStyle());
@@ -276,8 +276,8 @@ void MainWindow::initCourierMode(int id)
 
     //![init functional tables]
     tables[ui->tab_4] = new FreezeTableWidget(this);
-    tables[ui->tab_4]->init("SELECT Заказ.КодЗаказа, Заказ.НазваниеТарифа, Заказ.АдресПолученияТовара, Заказ.АдресДоставки, Заказ.Вес, Заказ.ПроцентКурьера*Тариф.Цена/100 AS Ставка "
-                            "FROM Заказ JOIN Тариф ON Заказ.НазваниеТарифа = Тариф.НазваниеТарифа "
+    tables[ui->tab_4]->init("SELECT Заказ.КодЗаказа, Заказ.НазваниеТарифа, Заказ.АдресПолученияТовара, Заказ.АдресДоставки, Заказ.Вес, Заказ.ПроцентКурьера*СтоимостьЗаказа/100 AS Ставка "
+                            "FROM Заказ "
                             "WHERE СтатусЗаказа = 'Не принят'",
                             {
                                 "SELECT КодЗаказа FROM Заказ WHERE "
@@ -526,10 +526,23 @@ void MainWindow::on_enterOrder_clicked()
     }
     if(ui->weight->text().toDouble() > 10.0 and optionManager->name_of_button(optionManager->active) == "Экспресс")
     {
-        QMessageBox::critical(this, "Ошибка! ","Максимально доступный вес в данном тарифек равен 10 кг", QMessageBox::Apply);
+        QMessageBox::critical(this, "Ошибка! ","Максимально доступный вес в тарифе Экспресс равен 10 кг", QMessageBox::Apply);
         return;
     }
-    Payment* form = new Payment(nullptr, ui->price->text());
+    yandex_map_length_controller = new MapDistanceCalculator(this, "CtSWNkTnMj92mAJJhcX15tWcko77VMgco6K1Y3DQTr5AnUA8XJS0c325EZkE0OCv", "fe6b37b2-0fdc-45b2-a93f-d4116fcb4c47");
+    QEventLoop l;
+    connect(yandex_map_length_controller, &MapDistanceCalculator::API_answer, &l, &QEventLoop::quit);
+    yandex_map_length_controller->setCoordinatesOfAddress(ui->Address->text());
+    l.exec();
+    yandex_map_length_controller->setCoordinatesOfAddress(ui->your_address->text());
+    l.exec();
+    yandex_map_length_controller->setDistance();
+    l.exec();
+    qDebug() <<yandex_map_length_controller->getResult();
+    QSqlQuery qry1;
+    qry1.exec(QString("SELECT Цена FROM Тариф WHERE НазваниеТарифа = %1").arg(optionManager->active->text()));
+    qry1.next();
+    Payment* form = new Payment(nullptr, QString::number(yandex_map_length_controller->getResult()/1000 * 5 + qry1.value(0).toInt()));
     if(form->exec() != QDialog::Accepted)
     {
         QMessageBox::critical(this, "Ошибка! ","Заказ не был оплачен", QMessageBox::Apply);
@@ -538,14 +551,15 @@ void MainWindow::on_enterOrder_clicked()
     }
     delete form;
     QSqlQuery qry;
-    qry.prepare("INSERT INTO Заказ (КодКлиента,НазваниеТарифа, Вес, АдресПолученияТовара, АдресДоставки, ФИОПолучателя, НомерТелефонаПолучателя) "
-                "VALUES (:id_client, :tariff, :weight, :address_get, :address_del, :fio, :telephone)");
+    qry.prepare("INSERT INTO Заказ (КодКлиента,НазваниеТарифа, Вес, АдресПолученияТовара, АдресДоставки, ФИОПолучателя, НомерТелефонаПолучателя, СтоимостьЗаказа) "
+                "VALUES (:id_client, :tariff, :weight, :address_get, :address_del, :fio, :telephone, :price)");
 
     qry.bindValue(":id_client", id_user);
     qry.bindValue(":tariff", optionManager->name_of_button(optionManager->active));
     qry.bindValue(":weight", ui->weight->text().toDouble());
     qry.bindValue(":address_get", ui->your_address->text());
     qry.bindValue(":address_del", ui->Address->text());
+    qry.bindValue(":price", yandex_map_length_controller->getResult()/1000 * 5 + qry1.value(0).toInt());
     if(ui->FIO->text() == "")
         qry.bindValue(":fio", QVariant());
     else

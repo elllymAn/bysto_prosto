@@ -7,6 +7,7 @@
 #include "optionbutton.h"
 #include <QMap>
 #include "charts_controller.h"
+#include "mapdistancecalculator.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -35,6 +36,7 @@ private:
     DatabaseConnector* db_helper;
     optionButton* optionManager;
     charts_controller* controller;
+    MapDistanceCalculator* yandex_map_length_controller;
     int id_user;
     Role role_user;
 private slots:

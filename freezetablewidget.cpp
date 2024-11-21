@@ -69,7 +69,7 @@ void FreezeTableWidget::setModel()
     proxyModel->setSourceModel(sql_model);
     QTableView::setModel(proxyModel);
     frozenTableView->setModel(model());
-    connect(this->horizontalHeader(), &QHeaderView::sectionClicked, [this](int section)
+    connect(this->horizontalHeader(), &QHeaderView::sectionClicked, this, [this](int section)
     {
         QHeaderView* headerView = this->horizontalHeader();
         QWidget* sortWidget = new QWidget(this, Qt::Popup);
@@ -83,7 +83,7 @@ void FreezeTableWidget::setModel()
         QHBoxLayout* lo = new QHBoxLayout(sortWidget);
         QLineEdit* le = new QLineEdit(sortWidget);
 
-        connect(le, &QLineEdit::textChanged, [this, section](const QString& toSort) {
+        connect(le, &QLineEdit::textChanged, this, [this, section](const QString& toSort) {
             if (toSort.isEmpty()) {
                 proxyModel->setFilterFixedString("");
                 proxyModel->sort(section);
@@ -112,7 +112,7 @@ void FreezeTableWidget::setModel()
         sortWidget->resize(columnWidth, 40);
         sortWidget->move(sx, sy);
         sortWidget->show();
-        connect(this->horizontalHeader(), &QHeaderView::sectionClicked, [this, sortWidget, section](int clicked)
+        connect(this->horizontalHeader(), &QHeaderView::sectionClicked, this, [this, sortWidget, section](int clicked)
         {
             proxyModel->setFilterFixedString("");
             proxyModel->sort(section);
