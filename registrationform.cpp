@@ -83,7 +83,7 @@ bool registrationForm::telephone_is_unique(QString telephone)
 
 void registrationForm::on_pushButton_3_clicked()
 {
-    if(ui->lineEdit->text() == "" or ui->lineEdit_2->text() == "8" or password->text() == "")
+    if(ui->lineEdit->text() == "" or ui->lineEdit_2->text().length() != 11 or password->text() == "")
     {
         QMessageBox::critical(this, "Ошибка! ","Не все данные формы заполнены!", QMessageBox::Apply);
         return;
@@ -125,7 +125,7 @@ void registrationForm::on_pushButton_3_clicked()
             QMessageBox::critical(this, "Ошибка! ","Регистрация для курьера возможна с 18 лет!", QMessageBox::Apply);
             return;
         }
-        if(ui->lineEdit_3->text() == "")
+        if(ui->lineEdit_3->text() == "" or ui->lineEdit_3->text().length() != 12)
         {
             QMessageBox::critical(this, "Ошибка! ","Данные паспорта не заполнены!", QMessageBox::Apply);
             return;

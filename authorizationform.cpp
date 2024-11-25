@@ -54,7 +54,7 @@ void AuthorizationForm::setWindowStyle()
     ui->lineEdit_2->setClearButtonEnabled(true);
     ui->lineEdit_2->setInputMask(QString("80000000000"));
     //configurate password form
-    passwordLine = new PasswordLine();
+    passwordLine = new PasswordLine(this);
     passwordLine->setMinimumSize(QSize(293, 40));
     passwordLine->setMaximumSize(QSize(300, 40));
     passwordLine->setFont(QFont("Marmelad", 16));

@@ -45,8 +45,8 @@ void MapDistanceCalculator::setCoordinatesOfAddress(QString address)
 {
     if(current_way.size() == 2)
     {
-        qDebug() << "error";
-        current_way.clear();
+        qDebug() << "you can add only two points";
+        return;
     }
     QNetworkRequest request(QString("https://geocode-maps.yandex.ru/1.x/?apikey=%1&geocode=%2&results=1&format=json")
                                 .arg(api_geocode_key)
@@ -71,7 +71,8 @@ void MapDistanceCalculator::handleDistanceResponse(QNetworkReply *reply)
         // Извлекаем массив "elements"
         QJsonArray elementsArray = rowObj["elements"].toArray();
 
-        // Перебираем элементы массива elements
+        if(elementsArray.empty()) emit error_distance_calculator();
+
         for (const QJsonValue &elementValue : elementsArray) {
             QJsonObject elementObj = elementValue.toObject();
 
@@ -83,6 +84,7 @@ void MapDistanceCalculator::handleDistanceResponse(QNetworkReply *reply)
             this->result = distanceValue;
         }
     }
+    current_way.clear();
     emit API_answer();
 }
 
@@ -106,6 +108,11 @@ void MapDistanceCalculator::handleGeocodeResponse(QNetworkReply *reply)
                 current_way.append(QPair<double, double>{latitude, longitude});
                 qDebug() << "Latitude:" << latitude << "Longitude:" << longitude;
             } else qWarning() << "Ошибка: Неверный формат координат.";
+        }
+        else
+        {
+            emit enter_uncorrect_data();
+            return;
         }
     }
     emit API_answer();

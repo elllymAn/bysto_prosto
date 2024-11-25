@@ -29,6 +29,8 @@ private:
     QString api_distance_key;
 signals:
     void API_answer();
+    void enter_uncorrect_data();
+    void error_distance_calculator();
 };
 
 #endif // MAPDISTANCECALCULATOR_H

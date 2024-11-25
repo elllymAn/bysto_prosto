@@ -15,5 +15,6 @@
         <file>resources/data_analysis_icon.png</file>
         <file>resources/review_check_icon.png</file>
         <file>resources/search_order_icon.png</file>
+        <file>resources/personal_account_icon.png</file>
     </qresource>
 </RCC>

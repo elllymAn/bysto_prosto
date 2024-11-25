@@ -8,6 +8,7 @@
 #include <QMap>
 #include "charts_controller.h"
 #include "mapdistancecalculator.h"
+#include "passwordline.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -29,6 +30,7 @@ private:
     void initCourierMode(int id);
     void initManagerMode(int id);
     void initDefaultStyle();
+    void initAccountMode();
 
     Ui::MainWindow *ui;
     QList <QWidget*> childs;
@@ -37,6 +39,8 @@ private:
     optionButton* optionManager;
     charts_controller* controller;
     MapDistanceCalculator* yandex_map_length_controller;
+    PasswordLine* new_password;
+    PasswordLine* old_password;
     int id_user;
     Role role_user;
 private slots:

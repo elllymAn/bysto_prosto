@@ -25,9 +25,12 @@ MainWindow::MainWindow(QWidget *parent)
     QFontDatabase::addApplicationFont(":/fonts/Marmelad-Regular.ttf");
     db_helper = new DatabaseConnector();
     controller = new charts_controller(this);
+    new_password = new PasswordLine(this);
+    old_password = new PasswordLine(this);
     db_helper->connect("127.0.0.1", "courier_db", "postgres", "1234", 5432);
     initDefaultStyle();
     authorization();
+    initAccountMode();
 }
 
 MainWindow::~MainWindow()
@@ -86,13 +89,13 @@ void MainWindow::initUserMode(int id)
     ui->pushButton->setIcon(ButtonIcon4);
     ui->pushButton->setIconSize(ui->pushButton->size());
 
+    QPixmap pixmap5(":/resources/personal_account_icon.png");
+    QIcon ButtonIcon5(pixmap5);
+    ui->pushButton_5->setIcon(ButtonIcon5);
+    ui->pushButton_5->setIconSize(ui->pushButton_5->size());
+
     //order menu design
     ui->tab->setStyleSheet(styleHelper::addProjectFont("white"));
-   /* ui->price->setStyleSheet("QLabel{"
-                             "font-family: Marmelad;"
-                             "font-size : 20 px;"
-                             "color: #69E0FE;"
-                             "}");*/
     optionManager = new optionButton();
     QList<QPushButton*> buttons = ui->tab->findChildren<QPushButton*>();
     foreach (QPushButton* button , buttons) {
@@ -100,30 +103,6 @@ void MainWindow::initUserMode(int id)
         {
             optionManager->addButton(button);
             button->setStyleSheet(styleHelper::addPushButtonStyle2());
-            /*connect(button, &QPushButton::clicked, this,
-                [this]()
-                {
-                        if(optionManager->active == ui->base)
-                        {
-                            ui->price->setText("2200");
-                        }
-                        else if(optionManager->active == ui->profi)
-                        {
-                            ui->price->setText("5500");
-                        }
-                        else if(optionManager->active == ui->products)
-                        {
-                            ui->price->setText("1500");
-                        }
-                        else if(optionManager->active == ui->express)
-                        {
-                            ui->price->setText("4000");
-                        }
-                        else if(optionManager->active == ui->documents)
-                        {
-                            ui->price->setText("1500");
-                        }
-                });*/
         }
     }
     ui->enterOrder->setStyleSheet(styleHelper::addPushButtonStyle());
@@ -156,11 +135,15 @@ void MainWindow::initUserMode(int id)
             {
                 ui->tabWidget->setCurrentIndex(0);
             });
-
     connect(ui->pushButton, &QPushButton::clicked, this,
             [this]()
             {
                 authorization();
+            });
+    connect(ui->pushButton_5, &QPushButton::clicked, this,
+            [this]()
+            {
+                ui->tabWidget->setCurrentIndex(9);
             });
     //![init menu buttons functional]
 
@@ -250,6 +233,11 @@ void MainWindow::initCourierMode(int id)
     QIcon ButtonIcon4(pixmap4);
     ui->pushButton->setIcon(ButtonIcon4);
     ui->pushButton->setIconSize(ui->pushButton->size());
+
+    QPixmap pixmap5(":/resources/personal_account_icon.png");
+    QIcon ButtonIcon5(pixmap5);
+    ui->pushButton_5->setIcon(ButtonIcon5);
+    ui->pushButton_5->setIconSize(ui->pushButton_5->size());
     //![init menu buttons]
     //![init menu buttons functional]
     connect(ui->pushButton_2, &QPushButton::clicked, this,
@@ -271,6 +259,11 @@ void MainWindow::initCourierMode(int id)
             [this]()
             {
                 authorization();
+            });
+    connect(ui->pushButton_5, &QPushButton::clicked, this,
+            [this]()
+            {
+                ui->tabWidget->setCurrentIndex(9);
             });
     //![init menu buttons functional]
 
@@ -397,6 +390,11 @@ void MainWindow::initManagerMode(int id)
     QIcon ButtonIcon4(pixmap4);
     ui->pushButton->setIcon(ButtonIcon4);
     ui->pushButton->setIconSize(ui->pushButton->size());
+
+    QPixmap pixmap5(":/resources/personal_account_icon.png");
+    QIcon ButtonIcon5(pixmap5);
+    ui->pushButton_5->setIcon(ButtonIcon5);
+    ui->pushButton_5->setIconSize(ui->pushButton_5->size());
     //![init menu button]
 
     //![init menu buttons functional]
@@ -419,6 +417,11 @@ void MainWindow::initManagerMode(int id)
             [this]()
             {
                 authorization();
+            });
+    connect(ui->pushButton_5, &QPushButton::clicked, this,
+            [this]()
+            {
+                ui->tabWidget->setCurrentIndex(9);
             });
     //![init menu buttons functional]
 
@@ -485,7 +488,200 @@ void MainWindow::initDefaultStyle()
     ui->tabWidget->setStyleSheet("border-style: none");
     ui->tabWidget->setDocumentMode(true);
 }
+
+void MainWindow::initAccountMode()
+{
+    old_password->setText("");
+    new_password->setText("");
+    switch(role_user)
+    {
+        case Role::COURIER:
+            ui->label_28->setVisible(true);
+            ui->lineEdit_7->setVisible(true);
+            ui->user_role_lk->setText("Курьер");
+            break;
+        case Role::USER:
+            ui->label_28->setVisible(false);
+            ui->lineEdit_7->setVisible(false);
+            ui->user_role_lk->setText("Пользователь");
+            break;
+        case Role::MANAGER:
+            ui->label_28->setVisible(false);
+            ui->lineEdit_7->setVisible(false);
+            ui->user_role_lk->setText("Менеджер");
+            break;
+        default:
+            break;
+    }
+
+    //![init personal account style settings]
+    ui->tab_10->setStyleSheet(styleHelper::addProjectFont("white") + '\n' + styleHelper::addTextStyle());
+    ui->user_role_lk->setStyleSheet(styleHelper::addProjectFont("rgba(242, 133, 255, 255)"));
+    ui->pushButton_6->setStyleSheet(styleHelper::addPushButtonStyle());
+    ui->pushButton_7->setStyleSheet(styleHelper::addPushButtonStyle());
+
+    ui->lineEdit_3->setInputMask(QString("80000000000"));
+    ui->lineEdit_7->setInputMask(QString("00 00 000000"));
+
+
+    new_password->setMinimumSize(QSize(0, 40));
+    new_password->setMaximumSize(QSize(1111111, 40));
+    new_password->setFont(QFont("Marmelad", 20));
+    ui->gridLayout_23->addWidget(new_password, 19, 1);
+
+    old_password->setMinimumSize(QSize(0, 40));
+    old_password->setMaximumSize(QSize(1111111, 40));
+    old_password->setFont(QFont("Marmelad", 20));
+    ui->gridLayout_23->addWidget(old_password, 21, 1);
+
+    //![init personal account style settings]
+
+    //![init pushbuttons action]
+    connect(ui->pushButton_6, &QPushButton::clicked, this,
+            [this]()
+            {
+                if(ui->lineEdit_3->text().length() != 11)
+                {
+                    QMessageBox::critical(this, "Ошибка! ","Неверный формат номера телефона!", QMessageBox::Apply);
+                    return;
+                }
+                if(role_user == Role::COURIER)
+                {
+                    if(ui->lineEdit_7->text().length() != 12)
+                    {
+                        QMessageBox::critical(this, "Ошибка! ","Неверный формат данных паспорта!", QMessageBox::Apply);
+                        return;
+                    }
+
+
+                    QSqlQuery qry1;
+                    qry1.prepare("SELECT НомерТелефона FROM Курьер WHERE КодКурьера <> :curier UNION SELECT НомерТелефона FROM Клиент;");
+                    qry1.bindValue(":curier", id_user);
+                    qry1.exec();
+                    while(qry1.next())
+                    {
+                        if(qry1.value(0).toString() == ui->lineEdit_3->text())
+                        {
+                            QMessageBox::critical(this, "Ошибка! ","Данный номер уже используется!", QMessageBox::Apply);
+                            return;
+                        }
+                    }
+
+
+                    QSqlQuery qry;
+                    qry.prepare("UPDATE Курьер "
+                                "SET ФИО = :fio, "
+                                "НомерТелефона = :tel, "
+                                "ДанныеПаспорта = :pass "
+                                "WHERE КодКурьера = :curier");
+                    qry.bindValue(":fio", ui->lineEdit->text());
+                    qry.bindValue(":tel", ui->lineEdit_3->text());
+                    qry.bindValue(":pass", ui->lineEdit_7->text());
+                    qry.bindValue(":curier", id_user);
+
+
+                    if(!qry.exec()) QMessageBox::critical(this, "Ошибка! ","Не удалось обновить данные", QMessageBox::Apply);
+                    else QMessageBox::information(this, "Успех ","Данные успешно обновлены!", QMessageBox::Apply);
+                }
+                else
+                {
+                    QSqlQuery qry1;
+                    qry1.prepare("SELECT НомерТелефона FROM Курьер UNION SELECT НомерТелефона FROM Клиент WHERE КодКлиента <> :user;");
+                    qry1.bindValue(":user", id_user);
+                    qry1.exec();
+                    while(qry1.next())
+                    {
+                        if(qry1.value(0).toString() == ui->lineEdit_3->text())
+                        {
+                            QMessageBox::critical(this, "Ошибка! ","Данный номер уже используется!", QMessageBox::Apply);
+                            return;
+                        }
+                    }
+
+
+
+                    QSqlQuery qry;
+                    qry.prepare("UPDATE Клиент "
+                                "SET ФИО = :fio, "
+                                "НомерТелефона = :tel "
+                                "WHERE КодКлиента = :user");
+                    qry.bindValue(":fio", ui->lineEdit->text());
+                    qry.bindValue(":tel", ui->lineEdit_3->text());
+                    qry.bindValue(":user", id_user);
+
+
+
+                    if(!qry.exec()) QMessageBox::critical(this, "Ошибка! ","Не удалось обновить данные", QMessageBox::Apply);
+                    else QMessageBox::information(this, "Успех ","Данные успешно обновлены!", QMessageBox::Apply);
+                }
+            });
+    connect(ui->pushButton_7, &QPushButton::clicked, this,
+            [this]()
+            {
+                if(new_password->text() == "" or old_password->text() == "")
+                {
+                    QMessageBox::critical(this, "Ошибка! ","Некорректный формат данных!", QMessageBox::Apply);
+                    return;
+                }
+                if(role_user == Role::COURIER)
+                {
+                    QSqlQuery qry;
+                    qry.prepare("SELECT Пароль FROM Курьер WHERE КодКурьера = :curier");
+                    qry.bindValue(":curier", id_user);
+                    qry.exec();
+                    if(qry.next())
+                    {
+                        QMessageBox::critical(this, "Ошибка! ","Не удалось обновить пароль", QMessageBox::Apply);
+                        return;
+                    }
+
+
+                    if(qry.value(0).toString() == old_password->text())
+                    {
+                        QSqlQuery qry1;
+                        qry1.prepare("UPDATE Курьер SET Пароль = :password WHERE КодКурьера = :curier");
+                        qry1.bindValue(":password", new_password->text());
+                        qry1.bindValue(":curier", id_user);
+                        if(!qry1.exec())
+                            QMessageBox::critical(this, "Ошибка! ","Не удалось обновить пароль", QMessageBox::Apply);
+                        else
+                            QMessageBox::information(this, "Успех ","Данные успешно обновлены!", QMessageBox::Apply);
+                    }
+                    else QMessageBox::critical(this, "Ошибка! ","Неверно введен старый пароль", QMessageBox::Apply);
+                }
+                else
+                {
+                    QSqlQuery qry;
+                    qry.prepare("SELECT Пароль FROM Клиент WHERE КодКлиента = :user");
+                    qry.bindValue(":user", id_user);
+                    qry.exec();
+                    if(!qry.next())
+                    {
+                        QMessageBox::critical(this, "Ошибка! ","Не удалось обновить пароль", QMessageBox::Apply);
+                        return;
+                    }
+
+
+                    if(qry.value(0).toString() == old_password->text())
+                    {
+                        QSqlQuery qry1;
+                        qry1.prepare("UPDATE Клиент SET Пароль = :password WHERE КодКлиента = :user");
+                        qry1.bindValue(":password", new_password->text());
+                        qry1.bindValue(":user", id_user);
+                        if(!qry1.exec())
+                            QMessageBox::critical(this, "Ошибка! ","Не удалось обновить пароль", QMessageBox::Apply);
+                        else
+                        {
+                            QMessageBox::information(this, "Успех ","Данные успешно обновлены!", QMessageBox::Apply);
+                        }
+                    }
+                    else QMessageBox::critical(this, "Ошибка! ","Неверно введен старый пароль", QMessageBox::Apply);
+                }
+            });
+    //![init pushbuttons action]
+}
 //![init default style settings for form]
+
 //![init main window mode]
 void MainWindow::checkRole(Role user, int id)
 {
@@ -508,10 +704,11 @@ void MainWindow::checkRole(Role user, int id)
     default:
         break;
     }
+    initAccountMode();
 }
 //![init main window mode]
 
-
+//![init get_usres_order_pushbutton_action]
 void MainWindow::on_enterOrder_clicked()
 {
     if(optionManager->active == nullptr)
@@ -519,7 +716,7 @@ void MainWindow::on_enterOrder_clicked()
         QMessageBox::critical(this, "Ошибка! ","Не выбран способ доставки! ", QMessageBox::Apply);
         return;
     }
-    if(ui->weight->text() == "" or ui->your_address->text() == "" or ui->Address->text() == "" or ui->FIO->text() == "" or ui->telephone->text().length() != 11)
+    if(ui->weight->text() == "" or ui->your_address->text() == "" or ui->Address->text() == "")// or ui->FIO->text() == "" or ui->telephone->text().length() != 11)
     {
         QMessageBox::critical(this, "Ошибка! ","Не все поля заполнены корректно", QMessageBox::Apply);
         return;
@@ -530,18 +727,38 @@ void MainWindow::on_enterOrder_clicked()
         return;
     }
     yandex_map_length_controller = new MapDistanceCalculator(this, "CtSWNkTnMj92mAJJhcX15tWcko77VMgco6K1Y3DQTr5AnUA8XJS0c325EZkE0OCv", "fe6b37b2-0fdc-45b2-a93f-d4116fcb4c47");
+
     QEventLoop l;
     connect(yandex_map_length_controller, &MapDistanceCalculator::API_answer, &l, &QEventLoop::quit);
+    connect(yandex_map_length_controller, &MapDistanceCalculator::enter_uncorrect_data, &l, &QEventLoop::quit);
+    connect(yandex_map_length_controller, &MapDistanceCalculator::error_distance_calculator, &l, &QEventLoop::quit);
+    connect(yandex_map_length_controller, &MapDistanceCalculator::enter_uncorrect_data, this,
+            [this]()
+            {
+                QMessageBox::critical(this, "Ошибка! ","Указанные адреса неверны!", QMessageBox::Apply);
+                return;
+            });
+    connect(yandex_map_length_controller, &MapDistanceCalculator::error_distance_calculator, this,
+            [this]()
+            {
+                QMessageBox::critical(this, "Ошибка! ","Не удалось вычислить расстояние между адресами! Попробуйте позже.", QMessageBox::Apply);
+                return;
+            });
+
+    //![get data from yndex map API]
     yandex_map_length_controller->setCoordinatesOfAddress(ui->Address->text());
     l.exec();
     yandex_map_length_controller->setCoordinatesOfAddress(ui->your_address->text());
     l.exec();
     yandex_map_length_controller->setDistance();
     l.exec();
-    qDebug() <<yandex_map_length_controller->getResult();
+    //![get data from yndex map API]
+
     QSqlQuery qry1;
-    qry1.exec(QString("SELECT Цена FROM Тариф WHERE НазваниеТарифа = %1").arg(optionManager->active->text()));
-    qry1.next();
+    qDebug() << optionManager->active->text();
+    qry1.prepare("SELECT Цена FROM Тариф WHERE НазваниеТарифа = :tariff");
+    qry1.bindValue(":tariff", optionManager->active->text());
+    qry1.exec(); qry1.next();
     Payment* form = new Payment(nullptr, QString::number(yandex_map_length_controller->getResult()/1000 * 5 + qry1.value(0).toInt()));
     if(form->exec() != QDialog::Accepted)
     {
@@ -580,12 +797,9 @@ void MainWindow::on_enterOrder_clicked()
         qDebug() << db_helper->getDB().lastError();
         QMessageBox::critical(this, "Ошибка! ","Не удалось добавить заказ! "+ db_helper->getDB().lastError().text(), QMessageBox::Apply);
     }
-    else
-    {
-        QMessageBox::information(this, "Успех ","Заказ успешно добавлен!", QMessageBox::Apply);
-    }
+    else QMessageBox::information(this, "Успех ","Заказ успешно добавлен!", QMessageBox::Apply);
 }
-
+//![init get_usres_order_pushbutton_action]
 
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
@@ -608,6 +822,45 @@ void MainWindow::on_tabWidget_currentChanged(int index)
         case 7:
         {
             controller->updateValues();
+            break;
+        }
+        case 9:
+        {
+            if(role_user == Role::COURIER)
+            {
+                QSqlQuery qry;
+                qry.prepare("SELECT ФИО, НомерТелефона, ДанныеПаспорта "
+                            "FROM Курьер WHERE КодКурьера = :user_id");
+                qry.bindValue(":user_id", id_user);
+                qry.exec();
+                if(qry.next())
+                {
+                    ui->lineEdit->setText(qry.value(0).toString());
+                    ui->lineEdit_3->setText(qry.value(1).toString());
+                    ui->lineEdit_7->setText(qry.value(2).toString());
+                }
+                else
+                {
+                    QMessageBox::critical(this, "Ошибка! ","Не получилось получить данные о пользователе", QMessageBox::Apply);
+                }
+            }
+            else
+            {
+                QSqlQuery qry;
+                qry.prepare("SELECT ФИО, НомерТелефона "
+                            "FROM Клиент WHERE КодКлиента = :user_id");
+                qry.bindValue(":user_id", id_user);
+                qry.exec();
+                if(qry.next())
+                {
+                    ui->lineEdit->setText(qry.value(0).toString());
+                    ui->lineEdit_3->setText(qry.value(1).toString());
+                }
+                else
+                {
+                    QMessageBox::critical(this, "Ошибка! ","Не получилось получить данные о пользователе", QMessageBox::Apply);
+                }
+            }
             break;
         }
         case 0:
