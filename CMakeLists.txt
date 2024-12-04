@@ -54,6 +54,7 @@ qt_add_executable(courier_DB
         charts_controller.h charts_controller.cpp
         registrationform.h registrationform.cpp registrationform.ui
         mapdistancecalculator.h mapdistancecalculator.cpp
+        checkorderinfo.h checkorderinfo.cpp checkorderinfo.ui
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET courier_DB APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

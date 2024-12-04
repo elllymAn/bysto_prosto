@@ -14,6 +14,7 @@
 #include "payment.h"
 #include "change_current_courier_procent.h"
 #include <QEventLoop>
+#include "checkorderinfo.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -114,6 +115,11 @@ void MainWindow::initUserMode(int id)
     }
     ui->telephone->setInputMask("80000000000");
     ui->weight->setValidator(new QRegularExpressionValidator(QRegularExpression("^\\d{1,3}(\\.\\d{1,2})?$"), ui->weight));
+    // QSqlQuery qry;
+    // qry.prepare("SELECT АдресКлиента FROM Клиент WHERE КодКлиента = :id");
+    // qry.bindValue(":id", id_user);
+    // qry.exec(); qry.next();
+    // ui->your_address->setText(qry.value(0).toString());
     //![init styles]
 
 
@@ -152,7 +158,7 @@ void MainWindow::initUserMode(int id)
     tables[ui->tab_2] = new FreezeTableWidget(this);
     tables[ui->tab_3] = new FreezeTableWidget(this);
 
-    tables[ui->tab_2]->init("SELECT КодЗаказа, СтатусЗаказа, АдресПолученияТовара, АдресДоставки FROM ИсторияПользователей WHERE "
+    tables[ui->tab_2]->init("SELECT КодЗаказа, СтатусЗаказа, ДатаЗаказа, ДатаСдачи FROM ИсторияПользователей WHERE "
                        "КодКлиента = " + QString::number(id_user),
                         {"SELECT КодЗаказа FROM ИсторияПользователей WHERE СтатусЗаказа = 'Выполнен' AND КодКлиента = " +
                            QString::number(id_user) + " AND КодЗаказа NOT IN (SELECT КодЗаказа FROM Отзыв WHERE КодКлиента = " + QString::number(id_user) + ");"
@@ -172,26 +178,38 @@ void MainWindow::initUserMode(int id)
                         {
                             "Дать отзыв"
                         });
-    tables[ui->tab_3]->init("SELECT КодЗаказа, СтатусЗаказа, АдресПолученияТовара, АдресДоставки FROM ИсторияПользователей WHERE "
+    tables[ui->tab_3]->init("SELECT КодЗаказа, СтатусЗаказа, АдресПолученияТовара, АдресДоставки, ДатаЗаказа FROM ИсторияПользователей WHERE "
                          "КодКлиента = " + QString::number(id_user) + " AND СтатусЗаказа <> 'Выполнен'",
                         {
+                            "SELECT КодЗаказа FROM ИсторияПользователей WHERE "
+                            "КодКлиента = " + QString::number(id_user) + " AND СтатусЗаказа = 'Не принят' ",
                             "SELECT КодЗаказа FROM ИсторияПользователей WHERE "
                             "КодКлиента = " + QString::number(id_user) + " AND СтатусЗаказа = 'Не принят' "
                         },
                         {
-                            [table = tables[ui->tab_3], db = db_helper, parent = this](QModelIndex index)
+                            [table = tables[ui->tab_3], parent = this](QModelIndex index)
                             {
                                 correctOrderForm* form = new correctOrderForm(parent, table->model()->data(table->model()->index(index.row(), 0)).toInt());
                                 connect(form, &QDialog::finished, table,
-                                        [table, db]()
+                                        [table]()
                                         {
                                             table->updateValues();
                                         });
                                 form->exec();
+                            },
+                            [table = tables[ui->tab_3], parent = this](QModelIndex index)
+                            {
+                                QSqlQuery qry;
+                                qry.prepare("DELETE FROM Заказ WHERE КодЗаказа = :order");
+                                qry.bindValue(":order", table->model()->data(table->model()->index(index.row(), 0)).toInt());
+                                if(!qry.exec()) QMessageBox::critical(parent, "Ошибка!","Не удалось принять заказ! ", QMessageBox::Apply);
+                                else QMessageBox::information(parent, "Успех!","Заказ успешно принят!", QMessageBox::Apply);
+                                table->updateValues();
                             }
                         },
                         {
-                            "Изменить"
+                            "Изменить",
+                            "Удалить"
                         });
 
     foreach(QWidget* key, tables.keys())
@@ -269,7 +287,8 @@ void MainWindow::initCourierMode(int id)
 
     //![init functional tables]
     tables[ui->tab_4] = new FreezeTableWidget(this);
-    tables[ui->tab_4]->init("SELECT Заказ.КодЗаказа, Заказ.НазваниеТарифа, Заказ.АдресПолученияТовара, Заказ.АдресДоставки, Заказ.Вес, Заказ.ПроцентКурьера*СтоимостьЗаказа/100 AS Ставка "
+    tables[ui->tab_4]->init("SELECT Заказ.КодЗаказа, Заказ.НазваниеТарифа, Заказ.АдресПолученияТовара, "
+                            "Заказ.АдресДоставки, Заказ.Вес, Заказ.ПроцентКурьера*СтоимостьЗаказа/100 AS Ставка, Заказ.ДатаЗаказа "
                             "FROM Заказ "
                             "WHERE СтатусЗаказа = 'Не принят'",
                             {
@@ -303,7 +322,7 @@ void MainWindow::initCourierMode(int id)
 
     tables[ui->tab_5] = new FreezeTableWidget(this);
     tables[ui->tab_5]->init("SELECT Заказ.КодЗаказа, Заказ.НазваниеТарифа, "
-                            "Заказ.АдресПолученияТовара, Заказ.АдресДоставки, Заказ.Вес "
+                            "Заказ.АдресПолученияТовара, Заказ.АдресДоставки, Заказ.Вес, Заказ.ДатаЗаказа "
                                 "FROM Заказ INNER JOIN ВРаботе ON Заказ.КодЗаказа = ВРаботе.КодЗаказа "
                                   "WHERE Заказ.СтатусЗаказа = 'В работе' AND ВРаботе.КодКурьера = " +QString::number(id),
                             {},
@@ -440,10 +459,21 @@ void MainWindow::initManagerMode(int id)
                                             table->updateValues();
                                         });
                                     form->exec();
+                                },
+                                [table = tables[ui->tab_7], parent = this](QModelIndex index)
+                                {
+                                    checkOrderInfo* form = new checkOrderInfo(parent, table->model()->data(table->model()->index(index.row(), 0)).toInt());
+                                    connect(form, &QDialog::finished, table,
+                                            [table]()
+                                            {
+                                                table->updateValues();
+                                            });
+                                    form->exec();
                                 }
                             },
                             {
-                                "Изменить проц-т"
+                                "Изменить проц-т",
+                                "Смотреть заказ"
                             });
 
     tables[ui->tab_9] = new FreezeTableWidget(this);
@@ -455,9 +485,6 @@ void MainWindow::initManagerMode(int id)
                             {},
                             {});
 
-    controller->init("SELECT ДатаЗаказа, COUNT(*) FROM Заказ GROUP BY ДатаЗаказа ORDER BY ДатаЗаказа ASC",
-                     "SELECT СтатусЗаказа, COUNT(*) FROM Заказ GROUP BY СтатусЗаказа");
-
 
     foreach(QWidget* key, tables.keys())
     {
@@ -468,13 +495,11 @@ void MainWindow::initManagerMode(int id)
     ui->gridLayout_17->addWidget(tables[ui->tab_7], 2, 0, 2, 4);
 
     ui->tab_8->setStyleSheet(styleHelper::addProjectFont("white"));
-    ui->gridLayout_19->addWidget(controller->line_view(), 2, 0, 2, 4);
-    ui->gridLayout_19->addWidget(controller->bar_view(), 4, 0, 4, 4);
+    // ui->gridLayout_19->addWidget(controller->line_view(), 2, 0, 2, 4);
+    // ui->gridLayout_19->addWidget(controller->bar_view(), 4, 0, 4, 4);
 
     ui->tab_9->setStyleSheet(styleHelper::addProjectFont("white"));
     ui->gridLayout_21->addWidget(tables[ui->tab_9], 2, 0, 2, 4);
-
-    controller->line_view()->setMinimumSize(500, 300);
     //![init functional elements]
 
     ui->tabWidget->setCurrentIndex(6);
@@ -499,11 +524,15 @@ void MainWindow::initAccountMode()
             ui->label_28->setVisible(true);
             ui->lineEdit_7->setVisible(true);
             ui->user_role_lk->setText("Курьер");
+            ui->label_28->setText("Номер паспорта");
+            ui->lineEdit_7->setInputMask(QString("00 00 000000"));
             break;
         case Role::USER:
-            ui->label_28->setVisible(false);
-            ui->lineEdit_7->setVisible(false);
+            ui->label_28->setVisible(true);
+            ui->lineEdit_7->setVisible(true);
+            ui->label_28->setText("Ваш адрес");
             ui->user_role_lk->setText("Пользователь");
+            ui->lineEdit_7->setInputMask(QString());
             break;
         case Role::MANAGER:
             ui->label_28->setVisible(false);
@@ -521,22 +550,23 @@ void MainWindow::initAccountMode()
     ui->pushButton_7->setStyleSheet(styleHelper::addPushButtonStyle());
 
     ui->lineEdit_3->setInputMask(QString("80000000000"));
-    ui->lineEdit_7->setInputMask(QString("00 00 000000"));
 
 
     new_password->setMinimumSize(QSize(0, 40));
     new_password->setMaximumSize(QSize(1111111, 40));
-    new_password->setFont(QFont("Marmelad", 20));
+    new_password->setFont(QFont("Marmelad", 16));
     ui->gridLayout_23->addWidget(new_password, 19, 1);
 
     old_password->setMinimumSize(QSize(0, 40));
     old_password->setMaximumSize(QSize(1111111, 40));
-    old_password->setFont(QFont("Marmelad", 20));
+    old_password->setFont(QFont("Marmelad", 16));
     ui->gridLayout_23->addWidget(old_password, 21, 1);
 
     //![init personal account style settings]
 
     //![init pushbuttons action]
+    disconnect(ui->pushButton_6, nullptr, nullptr, nullptr);
+    disconnect(ui->pushButton_7, nullptr, nullptr, nullptr);
     connect(ui->pushButton_6, &QPushButton::clicked, this,
             [this]()
             {
@@ -603,10 +633,12 @@ void MainWindow::initAccountMode()
                     QSqlQuery qry;
                     qry.prepare("UPDATE Клиент "
                                 "SET ФИО = :fio, "
-                                "НомерТелефона = :tel "
+                                "НомерТелефона = :tel, "
+                                "АдресКлиента = :address "
                                 "WHERE КодКлиента = :user");
                     qry.bindValue(":fio", ui->lineEdit->text());
                     qry.bindValue(":tel", ui->lineEdit_3->text());
+                    qry.bindValue(":address", ui->lineEdit_7->text());
                     qry.bindValue(":user", id_user);
 
 
@@ -680,6 +712,18 @@ void MainWindow::initAccountMode()
             });
     //![init pushbuttons action]
 }
+
+void MainWindow::initChartController()
+{
+    controller->addNewLineSeries("SELECT ДатаЗаказа, COUNT(*) FROM Заказ GROUP BY ДатаЗаказа ORDER BY ДатаЗаказа ASC", QPen(Qt::red));
+    controller->addNewLineSeries("SELECT ДатаСдачи, COUNT(*) FROM Заказ WHERE ДатаСдачи IS NOT NULL GROUP BY ДатаСдачи ORDER BY ДатаСдачи ASC", QPen(Qt::green));
+    controller->addNewDataLineSeries("SELECT ДатаЗаказа, COUNT(*) FROM Заказ GROUP BY ДатаЗаказа ORDER BY ДатаЗаказа ASC", QPen(Qt::darkBlue));
+    controller->addNewDataLineSeries("SELECT ДатаРегистрации, COUNT(*) FROM Курьер GROUP BY ДатаРегистрации ORDER BY ДатаРегистрации ASC", QPen(Qt::green));
+    controller->init();
+    ui->gridLayout_19->addWidget(controller->line1_view(), 2, 0, 2, 4);
+    ui->gridLayout_19->addWidget(controller->line2_view(), 4, 0, 4, 4);
+    controller->line1_view()->setMinimumSize(500, 300);
+}
 //![init default style settings for form]
 
 //![init main window mode]
@@ -700,6 +744,7 @@ void MainWindow::checkRole(Role user, int id)
         break;
     case Role::MANAGER:
         initManagerMode(id);
+        initChartController();
         break;
     default:
         break;
@@ -812,7 +857,7 @@ void MainWindow::on_tabWidget_currentChanged(int index)
                      "FROM ВРаботе JOIN Отзыв ON ВРаботе.КодЗаказа = Отзыв.КодЗаказа  "
                      "WHERE ВРаботе.КодКурьера = " + QString::number(id_user));
             qry.next();
-            ui->rating->setText(qry.value(0).toString());
+            ui->rating->setText(qry.value(0).toString().left(4));
             qry.exec("SELECT КоличествоВыполненныхЗаказов FROM Курьер WHERE КодКурьера = " + QString::number(id_user));
             qry.next();
             ui->do_order->setText(qry.value(0).toString());
@@ -821,7 +866,10 @@ void MainWindow::on_tabWidget_currentChanged(int index)
         }
         case 7:
         {
-            controller->updateValues();
+            controller->updateValues({"SELECT ДатаЗаказа, COUNT(*) FROM Заказ GROUP BY ДатаЗаказа ORDER BY ДатаЗаказа ASC",
+                                      "SELECT ДатаСдачи, COUNT(*) FROM Заказ WHERE ДатаСдачи IS NOT NULL GROUP BY ДатаСдачи ORDER BY ДатаСдачи ASC"},
+                                     {"SELECT ДатаЗаказа, COUNT(*) FROM Заказ GROUP BY ДатаЗаказа ORDER BY ДатаЗаказа ASC",
+                                      "SELECT ДатаРегистрации, COUNT(*) FROM Курьер GROUP BY ДатаРегистрации ORDER BY ДатаРегистрации ASC"});
             break;
         }
         case 9:
@@ -847,7 +895,7 @@ void MainWindow::on_tabWidget_currentChanged(int index)
             else
             {
                 QSqlQuery qry;
-                qry.prepare("SELECT ФИО, НомерТелефона "
+                qry.prepare("SELECT ФИО, НомерТелефона, АдресКлиента "
                             "FROM Клиент WHERE КодКлиента = :user_id");
                 qry.bindValue(":user_id", id_user);
                 qry.exec();
@@ -855,6 +903,7 @@ void MainWindow::on_tabWidget_currentChanged(int index)
                 {
                     ui->lineEdit->setText(qry.value(0).toString());
                     ui->lineEdit_3->setText(qry.value(1).toString());
+                    ui->lineEdit_7->setText(qry.value(2).toString());
                 }
                 else
                 {
@@ -864,7 +913,14 @@ void MainWindow::on_tabWidget_currentChanged(int index)
             break;
         }
         case 0:
+        {
+            QSqlQuery qry;
+            qry.prepare("SELECT АдресКлиента FROM Клиент WHERE КодКлиента = :id");
+            qry.bindValue(":id", id_user);
+            qry.exec(); qry.next();
+            ui->your_address->setText(qry.value(0).toString());
             break;
+        }
         default:
         {
             tables[ui->tabWidget->widget(index)]->updateValues();

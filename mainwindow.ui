@@ -277,7 +277,7 @@ background-position: center center;
  }</string>
       </property>
       <property name="currentIndex">
-       <number>9</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <property name="styleSheet">
@@ -1616,7 +1616,7 @@ background-color: #01327D;
              </font>
             </property>
             <property name="text">
-             <string>Аналитика поступающих заказов</string>
+             <string>Аналитика по заказам</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -1796,7 +1796,7 @@ background-color: #01327D;
             </property>
             <property name="font">
              <font>
-              <pointsize>20</pointsize>
+              <pointsize>16</pointsize>
              </font>
             </property>
            </widget>
@@ -1918,24 +1918,6 @@ background-color: #01327D;
             </property>
            </spacer>
           </item>
-          <item row="13" column="0">
-           <widget class="QLabel" name="label_28">
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>50</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>20</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Номер паспорта</string>
-            </property>
-           </widget>
-          </item>
           <item row="13" column="1">
            <widget class="QLineEdit" name="lineEdit_7">
             <property name="minimumSize">
@@ -1952,7 +1934,7 @@ background-color: #01327D;
             </property>
             <property name="font">
              <font>
-              <pointsize>20</pointsize>
+              <pointsize>16</pointsize>
              </font>
             </property>
            </widget>
@@ -2022,7 +2004,7 @@ background-color: #01327D;
             </property>
             <property name="font">
              <font>
-              <pointsize>20</pointsize>
+              <pointsize>16</pointsize>
              </font>
             </property>
            </widget>
@@ -2128,6 +2110,24 @@ background-color: #01327D;
             </property>
             <property name="alignment">
              <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="13" column="0">
+           <widget class="QLabel" name="label_28">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>50</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>20</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string/>
             </property>
            </widget>
           </item>

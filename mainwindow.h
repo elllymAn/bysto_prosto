@@ -31,7 +31,7 @@ private:
     void initManagerMode(int id);
     void initDefaultStyle();
     void initAccountMode();
-
+    void initChartController();
     Ui::MainWindow *ui;
     QList <QWidget*> childs;
     QMap<QWidget*, FreezeTableWidget*> tables;

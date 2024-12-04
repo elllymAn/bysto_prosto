@@ -17,17 +17,19 @@ class charts_controller : public QWidget
 public:
     charts_controller(QWidget* parent = nullptr);
     ~charts_controller();
-    void init(QString line_query = "", QString bar_query = "");
-    void updateValues();
+    void init();
+    void addNewLineSeries(QString line, QPen pen);
+    void addNewDataLineSeries(QString line, QPen pen);
+    void updateValues(QList<QString> lines, QList<QString> lines_date);
 
 
-    QChartView* line_view();
-    QChartView* bar_view();
+    QChartView* line1_view();
+    QChartView* line2_view();
 private:
+    void getLineData(QString qry, QLineSeries* series);
     int max_value;
-    void init_data();
-    std::tuple<QChart*, QLineSeries*, QChartView*, QString> line_chart;
-    std::tuple<QChart*, QBarSeries*, QChartView*, QString, QBarSet*, QStringList> bar_chart;
+    std::tuple<QChart*, QList<QLineSeries*>, QChartView*> line_chart;
+    std::tuple<QChart*, QList<QLineSeries*>, QChartView*> line_chart_date_reg;
 };
 
 #endif // CHARTS_CONTROLLER_H

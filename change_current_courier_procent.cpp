@@ -36,10 +36,17 @@ void change_current_courier_procent::init()
 
 void change_current_courier_procent::on_pushButton_clicked()
 {
+    if(ui->spinBox->value() < 80 or ui->spinBox->value() > 90)
+    {
+        QMessageBox::critical(nullptr, "Ошибка! ","Процент курьер вальируется от 80 до 90 процентов", QMessageBox::Apply);
+        return;
+    }
+
+
     QSqlQuery qry;
     if(!qry.exec("UPDATE Заказ SET ПроцентКурьера = " + QString::number(ui->spinBox->value()) + " WHERE КодЗаказа = " + QString::number(order_id)))
     {
-        QMessageBox::critical(nullptr, "Ошибка! ","Не удалось добавить отзыв!", QMessageBox::Apply);
+        QMessageBox::critical(nullptr, "Ошибка! ","Не удалось изменить процент!", QMessageBox::Apply);
     }
     else
     {

@@ -8,35 +8,33 @@
 charts_controller::charts_controller(QWidget* parent) : QWidget(parent), max_value(0)
 {
     std::get<0>(line_chart) = new QChart();
-    std::get<1>(line_chart) = new QLineSeries();
-    std::get<0>(bar_chart) = new QChart();
-    std::get<1>(bar_chart) = new QBarSeries();
-    std::get<4>(bar_chart) = new QBarSet("Количество заказов");
+    std::get<0>(line_chart_date_reg) = new QChart();
 }
 
 charts_controller::~charts_controller()
 {
     delete std::get<0>(line_chart);
-    delete std::get<1>(line_chart);
+    delete std::get<0>(line_chart_date_reg);
+    foreach (QLineSeries* line, std::get<1>(line_chart)) {
+        delete line;
+    }
+    foreach (QLineSeries* line, std::get<1>(line_chart_date_reg)) {
+        delete line;
+    }
     delete std::get<2>(line_chart);
-    delete std::get<0>(bar_chart);
-    delete std::get<1>(bar_chart);
-    delete std::get<2>(bar_chart);
-    delete std::get<4>(bar_chart);
+    delete std::get<2>(line_chart_date_reg);
 }
 
-void charts_controller::init(QString line_qry, QString bar_query)
+void charts_controller::init()
 {
-    std::get<3>(line_chart) = line_qry;
-    std::get<3>(bar_chart) = bar_query;
-
-    init_data();
-    std::get<1>(bar_chart)->append(std::get<4>(bar_chart));
-    std::get<0>(line_chart)->addSeries(std::get<1>(line_chart));
-    std::get<0>(bar_chart)->addSeries(std::get<1>(bar_chart));
-    std::get<0>(bar_chart)->setAnimationOptions(QChart::SeriesAnimations);
+    foreach (QLineSeries* series, std::get<1>(line_chart)) {
+        std::get<0>(line_chart)->addSeries(series);
+    }
+    foreach (QLineSeries* series, std::get<1>(line_chart_date_reg)) {
+        std::get<0>(line_chart_date_reg)->addSeries(series);
+    }
     std::get<0>(line_chart)->legend()->hide();
-
+    std::get<0>(line_chart_date_reg)->legend()->hide();
     //![line chart settings]
     QDateTimeAxis *axisX = new QDateTimeAxis();
     axisX->setFormat("yyyy-MM-dd");
@@ -47,13 +45,16 @@ void charts_controller::init(QString line_qry, QString bar_query)
     axisY->setTitleText("Значение");
     //axisY->setLabelFormat("%d");
     axisY->setMin(0);
+    axisY->setMax(6);
     // // Устанавливаем оси на график
     std::get<0>(line_chart)->addAxis(axisX, Qt::AlignBottom);
     std::get<0>(line_chart)->addAxis(axisY, Qt::AlignLeft);
     axisY->setTickCount(4);
     // Привязываем серию данных к осям
-    std::get<1>(line_chart)->attachAxis(axisX);
-    std::get<1>(line_chart)->attachAxis(axisY);
+    foreach (QLineSeries* series, std::get<1>(line_chart)) {
+        series->attachAxis(axisX);
+        series->attachAxis(axisY);
+    }
 
     std::get<0>(line_chart)->setVisible(true);
     std::get<2>(line_chart) = new QChartView(std::get<0>(line_chart));
@@ -62,73 +63,125 @@ void charts_controller::init(QString line_qry, QString bar_query)
     std::get<2>(line_chart)->setVisible(true);
     //![line chart settings]
 
+
     //![bar chart settings]
+    QDateTimeAxis *axX = new QDateTimeAxis();
+    axX->setFormat("yyyy-MM-dd");
+    axX->setTitleText("Дата");
 
-    QBarCategoryAxis* axeX = new QBarCategoryAxis();
-    axeX->append(std::get<5>(bar_chart));
-    std::get<0>(bar_chart)->addAxis(axeX,Qt::AlignBottom);
-    std::get<1>(bar_chart)->attachAxis(axeX);
+    // // Ось Y (значения)
+    QValueAxis *axY = new QValueAxis();
+    axY->setTitleText("Значение");
+    //axisY->setLabelFormat("%d");
+    axY->setMin(0);
+    axY->setMax(6);
+    // // Устанавливаем оси на график
+    std::get<0>(line_chart_date_reg)->addAxis(axX, Qt::AlignBottom);
+    std::get<0>(line_chart_date_reg)->addAxis(axY, Qt::AlignLeft);
+    axY->setTickCount(4);
+    // Привязываем серию данных к осям
+    foreach (QLineSeries* series, std::get<1>(line_chart_date_reg)) {
+        series->attachAxis(axX);
+        series->attachAxis(axY);
+    }
 
-    QValueAxis* axeY = new QValueAxis();
-    std::get<0>(bar_chart)->addAxis(axeY,Qt::AlignLeft);
-    std::get<1>(bar_chart)->attachAxis(axeY);
-
-    std::get<0>(bar_chart)->legend()->setVisible(true);
-    std::get<0>(bar_chart)->setVisible(true);
-    std::get<0>(bar_chart)->legend()->setAlignment(Qt::AlignBottom);
-
-    std::get<2>(bar_chart) = new QChartView(std::get<0>(bar_chart));
-    std::get<2>(bar_chart)->setRenderHint(QPainter::Antialiasing);
+    std::get<0>(line_chart_date_reg)->setVisible(true);
+    std::get<2>(line_chart_date_reg) = new QChartView(std::get<0>(line_chart_date_reg));
+    std::get<2>(line_chart_date_reg)->setRenderHint(QPainter::Antialiasing);
+    std::get<2>(line_chart_date_reg)->setRubberBand(QChartView::HorizontalRubberBand);
+    std::get<2>(line_chart_date_reg)->setVisible(true);
     //![bar chart settings]
 }
 
-QChartView *charts_controller::line_view()
+void charts_controller::addNewLineSeries(QString line, QPen pen)
+{
+    QLineSeries* series = new QLineSeries();
+    getLineData(line, series);
+    series->setPen(pen);
+    pen.setWidth(6);
+    std::get<1>(line_chart).append(series);
+}
+
+void charts_controller::addNewDataLineSeries(QString line, QPen pen)
+{
+    QLineSeries* series = new QLineSeries();
+    getLineData(line, series);
+    series->setPen(pen);
+    pen.setWidth(6);
+    std::get<1>(line_chart_date_reg).append(series);
+}
+
+
+QChartView *charts_controller::line1_view()
 {
     return std::get<2>(line_chart);
 }
 
-QChartView *charts_controller::bar_view()
+QChartView *charts_controller::line2_view()
 {
-    return std::get<2>(bar_chart);
+    return std::get<2>(line_chart_date_reg);
 }
 
-void charts_controller::init_data()
+void charts_controller::getLineData(QString qry_l, QLineSeries* series)
 {
     QSqlQuery qry;
-    qry.exec(std::get<3>(line_chart));
+    qry.exec(qry_l);
     QDateTime prevDate = QDateTime();
     while(qry.next())
     {
         QDateTime date = QDateTime::fromString(qry.value(0).toString(), "yyyy-MM-dd");
 
-        // Если есть промежуток между предыдущей и текущей датой, заполняем пропуски
         if (prevDate.isValid()) {
-            // Цикл для заполнения пропущенных дат
             while (prevDate.addDays(1) < date) {
                 prevDate = prevDate.addDays(1);
-                std::get<1>(line_chart)->append(prevDate.toMSecsSinceEpoch(), 0); // Добавляем дату с нулевым значением
+                series->append(prevDate.toMSecsSinceEpoch(), 0);
             }
         }
 
-        // Добавляем текущие данные
         max_value = std::max(max_value, qry.value(1).toInt());
-        std::get<1>(line_chart)->append(date.toMSecsSinceEpoch(), qry.value(1).toInt());
+        series->append(date.toMSecsSinceEpoch(), qry.value(1).toInt());
 
-        // Обновляем предыдущую дату
         prevDate = date;
-    }
-    qry.exec(std::get<3>(bar_chart));
-    while(qry.next())
-    {
-        std::get<4>(bar_chart)->append(qry.value(1).toInt());
-        std::get<5>(bar_chart).append(qry.value(0).toString());
     }
 }
 
-void charts_controller::updateValues()
+void charts_controller::updateValues(QList<QString> lines, QList<QString> lines_date)
 {
-    std::get<1>(line_chart)->clear();
-    init_data();
+    for(int i = 0; i < std::get<1>(line_chart).length(); ++i)
+    {
+        std::get<0>(line_chart)->removeSeries(std::get<1>(line_chart)[i]);
+    }
+
+    for (int i = 0; i < lines.size(); ++i)
+    {
+        if (i < std::get<1>(line_chart).size())
+        {
+            std::get<1>(line_chart)[i]->clear();
+            getLineData(lines[i], std::get<1>(line_chart)[i]);
+            std::get<0>(line_chart)->addSeries(std::get<1>(line_chart)[i]);
+        }
+    }
+
     std::get<0>(line_chart)->axes(Qt::Vertical).first()->setMax(max_value);
     std::get<0>(line_chart)->update();
+
+
+
+    for(int i = 0; i < std::get<1>(line_chart_date_reg).length(); ++i)
+    {
+        std::get<0>(line_chart_date_reg)->removeSeries(std::get<1>(line_chart_date_reg)[i]);
+    }
+
+    for (int i = 0; i < lines_date.size(); ++i)
+    {
+        if (i < std::get<1>(line_chart_date_reg).size())
+        {
+            std::get<1>(line_chart_date_reg)[i]->clear();
+            getLineData(lines_date[i], std::get<1>(line_chart_date_reg)[i]);
+            std::get<0>(line_chart_date_reg)->addSeries(std::get<1>(line_chart_date_reg)[i]);
+        }
+    }
+
+    std::get<0>(line_chart_date_reg)->axes(Qt::Vertical).first()->setMax(max_value);
+    std::get<0>(line_chart_date_reg)->update();
 }
