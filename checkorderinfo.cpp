@@ -34,7 +34,7 @@ void checkOrderInfo::init()
     ui->pushButton->setStyleSheet(styleHelper::addPushButtonStyle());
 
     QSqlQuery qry;
-    qry.prepare("SELECT КодЗаказа, НазваниеТарифа, Вес, ДатаЗаказа, ПроцентКурьера FROM Заказ WHERE КодЗаказа = :order");
+    qry.prepare("SELECT КодЗаказа, АдресПолученияТовара, АдресДоставки, Вес, ДатаЗаказа FROM Заказ WHERE КодЗаказа = :order");
     qry.bindValue(":order", order);
     qry.exec(); qry.next();
     ui->label_2->setText(qry.value(0).toString());

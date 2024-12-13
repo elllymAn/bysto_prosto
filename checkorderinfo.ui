@@ -17,7 +17,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Информация о заказе</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
@@ -130,7 +130,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Процент </string>
+        <string>Дата заказа</string>
        </property>
       </widget>
      </item>
@@ -148,7 +148,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Тарифа</string>
+        <string>Адрес получ-я</string>
        </property>
       </widget>
      </item>
@@ -182,7 +182,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Вес</string>
+        <string>Адрес доставки</string>
        </property>
       </widget>
      </item>
@@ -289,7 +289,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Дата заказа</string>
+        <string>Вес</string>
        </property>
       </widget>
      </item>
@@ -307,7 +307,7 @@
         </font>
        </property>
        <property name="text">
-        <string>КодЗаказа</string>
+        <string>Код заказа</string>
        </property>
       </widget>
      </item>

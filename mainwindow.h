@@ -32,12 +32,15 @@ private:
     void initDefaultStyle();
     void initAccountMode();
     void initChartController();
+    void resetChangingUser();
+
+
     Ui::MainWindow *ui;
     QList <QWidget*> childs;
     QMap<QWidget*, FreezeTableWidget*> tables;
     DatabaseConnector* db_helper;
     optionButton* optionManager;
-    charts_controller* controller;
+    chartsController* controller;
     MapDistanceCalculator* yandex_map_length_controller;
     PasswordLine* new_password;
     PasswordLine* old_password;

@@ -1,5 +1,5 @@
 #include "mainwindow.h"
-#include "./ui_mainwindow.h"
+#include "ui_mainwindow.h"
 #include <QMessageBox>
 #include "authorizationform.h"
 #include "stylehelper.h"
@@ -25,7 +25,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     QFontDatabase::addApplicationFont(":/fonts/Marmelad-Regular.ttf");
     db_helper = new DatabaseConnector();
-    controller = new charts_controller(this);
+    controller = new chartsController(this);
     new_password = new PasswordLine(this);
     old_password = new PasswordLine(this);
     db_helper->connect("127.0.0.1", "courier_db", "postgres", "1234", 5432);
@@ -69,6 +69,11 @@ void MainWindow::authorization()
 
 void MainWindow::initUserMode(int id)
 {
+    ui->weight->setText("");
+    ui->your_address->setText("");
+    ui->FIO->setText("");
+    ui->Address->setText("");
+    ui->telephone->setText("");
     //![init styles]
     QPixmap pixmap1(":/resources/clip_icon.png");
     QIcon ButtonIcon1(pixmap1);
@@ -115,11 +120,6 @@ void MainWindow::initUserMode(int id)
     }
     ui->telephone->setInputMask("80000000000");
     ui->weight->setValidator(new QRegularExpressionValidator(QRegularExpression("^\\d{1,3}(\\.\\d{1,2})?$"), ui->weight));
-    // QSqlQuery qry;
-    // qry.prepare("SELECT АдресКлиента FROM Клиент WHERE КодКлиента = :id");
-    // qry.bindValue(":id", id_user);
-    // qry.exec(); qry.next();
-    // ui->your_address->setText(qry.value(0).toString());
     //![init styles]
 
 
@@ -158,10 +158,10 @@ void MainWindow::initUserMode(int id)
     tables[ui->tab_2] = new FreezeTableWidget(this);
     tables[ui->tab_3] = new FreezeTableWidget(this);
 
-    tables[ui->tab_2]->init("SELECT КодЗаказа, СтатусЗаказа, ДатаЗаказа, ДатаСдачи FROM ИсторияПользователей WHERE "
-                       "КодКлиента = " + QString::number(id_user),
-                        {"SELECT КодЗаказа FROM ИсторияПользователей WHERE СтатусЗаказа = 'Выполнен' AND КодКлиента = " +
-                           QString::number(id_user) + " AND КодЗаказа NOT IN (SELECT КодЗаказа FROM Отзыв WHERE КодКлиента = " + QString::number(id_user) + ");"
+    tables[ui->tab_2]->init(QString("SELECT КодЗаказа, СтатусЗаказа, ДатаЗаказа, ДатаСдачи AS ДатаВыполнения FROM ИсторияПользователей WHERE "
+                                    "КодКлиента = %1").arg(id_user),
+                        {
+                            QString("SELECT КодЗаказа FROM ИсторияПользователей WHERE СтатусЗаказа = 'Выполнен' AND КодКлиента = %1 AND КодЗаказа NOT IN (SELECT КодЗаказа FROM Отзыв WHERE КодКлиента = %2);").arg(id_user).arg(id_user)
                         },
                         {
                             [id_user = id, table = tables[ui->tab_2], parent = this](QModelIndex index)
@@ -178,13 +178,13 @@ void MainWindow::initUserMode(int id)
                         {
                             "Дать отзыв"
                         });
-    tables[ui->tab_3]->init("SELECT КодЗаказа, СтатусЗаказа, АдресПолученияТовара, АдресДоставки, ДатаЗаказа FROM ИсторияПользователей WHERE "
-                         "КодКлиента = " + QString::number(id_user) + " AND СтатусЗаказа <> 'Выполнен'",
+    tables[ui->tab_3]->init(QString("SELECT КодЗаказа, СтатусЗаказа, АдресПолученияТовара, АдресДоставки, ДатаЗаказа FROM ИсторияПользователей WHERE "
+                         "КодКлиента = %1 AND СтатусЗаказа <> 'Выполнен'").arg(id_user),
                         {
-                            "SELECT КодЗаказа FROM ИсторияПользователей WHERE "
-                            "КодКлиента = " + QString::number(id_user) + " AND СтатусЗаказа = 'Не принят' ",
-                            "SELECT КодЗаказа FROM ИсторияПользователей WHERE "
-                            "КодКлиента = " + QString::number(id_user) + " AND СтатусЗаказа = 'Не принят' "
+                            QString("SELECT КодЗаказа FROM ИсторияПользователей WHERE "
+                                     "КодКлиента = %1 AND СтатусЗаказа = 'Не принят' ").arg(id_user),
+                            QString("SELECT КодЗаказа FROM ИсторияПользователей WHERE "
+                                     "КодКлиента = %1 AND СтатусЗаказа = 'Не принят' ").arg(id_user)
                         },
                         {
                             [table = tables[ui->tab_3], parent = this](QModelIndex index)
@@ -202,8 +202,8 @@ void MainWindow::initUserMode(int id)
                                 QSqlQuery qry;
                                 qry.prepare("DELETE FROM Заказ WHERE КодЗаказа = :order");
                                 qry.bindValue(":order", table->model()->data(table->model()->index(index.row(), 0)).toInt());
-                                if(!qry.exec()) QMessageBox::critical(parent, "Ошибка!","Не удалось принять заказ! ", QMessageBox::Apply);
-                                else QMessageBox::information(parent, "Успех!","Заказ успешно принят!", QMessageBox::Apply);
+                                if(!qry.exec()) QMessageBox::critical(parent, "Ошибка!","Не удалось удалить заказ! ", QMessageBox::Apply);
+                                else QMessageBox::information(parent, "Успех!","Заказ успешно удален!", QMessageBox::Apply);
                                 table->updateValues();
                             }
                         },
@@ -446,7 +446,10 @@ void MainWindow::initManagerMode(int id)
 
     //![init functional elements]
     tables[ui->tab_7] = new FreezeTableWidget(this);
-    tables[ui->tab_7]->init("SELECT Заказ.КодЗаказа, Заказ.НазваниеТарифа, Заказ.ПроцентКурьера "
+    tables[ui->tab_7]->init("SELECT Заказ.КодЗаказа, "
+                            "Заказ.ПроцентКурьера*Заказ.СтоимостьЗаказа/100 AS СтавкаКурьера, "
+                            "Заказ.ПроцентКурьера AS ТекущийПроцент, "
+                            "(CURRENT_DATE - Заказ.ДатаЗаказа) AS ДниОжидания "
                             "FROM Заказ WHERE СтатусЗаказа = 'Не принят'",
                             {},
                             {
@@ -477,7 +480,7 @@ void MainWindow::initManagerMode(int id)
                             });
 
     tables[ui->tab_9] = new FreezeTableWidget(this);
-    tables[ui->tab_9]->init("select Клиент.ФИО AS ФИОКлиента, Клиент.НомерТелефона AS НомерТелефонаКлиента, "
+    tables[ui->tab_9]->init("SELECT Клиент.ФИО AS ФИОКлиента, Клиент.НомерТелефона AS НомерТелефонаКлиента, "
                             "Заказ.КодЗаказа, Отзыв.Описание AS ОписаниеОтзыва, Отзыв.Оценка AS ОценкаДоставки "
                             "FROM Отзыв JOIN Заказ ON Отзыв.КодЗаказа = Заказ.КодЗаказа "
                             "JOIN Клиент ON Клиент.КодКлиента = Отзыв.КодКлиента",
@@ -495,8 +498,6 @@ void MainWindow::initManagerMode(int id)
     ui->gridLayout_17->addWidget(tables[ui->tab_7], 2, 0, 2, 4);
 
     ui->tab_8->setStyleSheet(styleHelper::addProjectFont("white"));
-    // ui->gridLayout_19->addWidget(controller->line_view(), 2, 0, 2, 4);
-    // ui->gridLayout_19->addWidget(controller->bar_view(), 4, 0, 4, 4);
 
     ui->tab_9->setStyleSheet(styleHelper::addProjectFont("white"));
     ui->gridLayout_21->addWidget(tables[ui->tab_9], 2, 0, 2, 4);
@@ -565,8 +566,6 @@ void MainWindow::initAccountMode()
     //![init personal account style settings]
 
     //![init pushbuttons action]
-    disconnect(ui->pushButton_6, nullptr, nullptr, nullptr);
-    disconnect(ui->pushButton_7, nullptr, nullptr, nullptr);
     connect(ui->pushButton_6, &QPushButton::clicked, this,
             [this]()
             {
@@ -717,13 +716,27 @@ void MainWindow::initChartController()
 {
     controller->addNewLineSeries("SELECT ДатаЗаказа, COUNT(*) FROM Заказ GROUP BY ДатаЗаказа ORDER BY ДатаЗаказа ASC", QPen(Qt::red));
     controller->addNewLineSeries("SELECT ДатаСдачи, COUNT(*) FROM Заказ WHERE ДатаСдачи IS NOT NULL GROUP BY ДатаСдачи ORDER BY ДатаСдачи ASC", QPen(Qt::green));
-    controller->addNewDataLineSeries("SELECT ДатаЗаказа, COUNT(*) FROM Заказ GROUP BY ДатаЗаказа ORDER BY ДатаЗаказа ASC", QPen(Qt::darkBlue));
-    controller->addNewDataLineSeries("SELECT ДатаРегистрации, COUNT(*) FROM Курьер GROUP BY ДатаРегистрации ORDER BY ДатаРегистрации ASC", QPen(Qt::green));
     controller->init();
     ui->gridLayout_19->addWidget(controller->line1_view(), 2, 0, 2, 4);
-    ui->gridLayout_19->addWidget(controller->line2_view(), 4, 0, 4, 4);
     controller->line1_view()->setMinimumSize(500, 300);
 }
+
+void MainWindow::resetChangingUser()
+{
+    //![disconnect events on pushbutton in account form]
+    disconnect(ui->pushButton_6, nullptr, nullptr, nullptr);
+    disconnect(ui->pushButton_7, nullptr, nullptr, nullptr);
+    //![disconnect events on pushbutton in account form]
+
+    //![disconnect menu buttons]
+    disconnect(ui->pushButton_2, nullptr, nullptr, nullptr);
+    disconnect(ui->pushButton_3, nullptr, nullptr, nullptr);
+    disconnect(ui->pushButton_4, nullptr, nullptr, nullptr);
+    disconnect(ui->pushButton, nullptr, nullptr, nullptr);
+    disconnect(ui->pushButton_5, nullptr, nullptr, nullptr);
+    //![disconnect menu buttons]
+}
+
 //![init default style settings for form]
 
 //![init main window mode]
@@ -734,6 +747,7 @@ void MainWindow::checkRole(Role user, int id)
     this->show();
     role_user = user;
     id_user = id;
+    resetChangingUser();
     switch(user)
     {
     case Role::USER:
@@ -749,6 +763,7 @@ void MainWindow::checkRole(Role user, int id)
     default:
         break;
     }
+
     initAccountMode();
 }
 //![init main window mode]
@@ -867,9 +882,7 @@ void MainWindow::on_tabWidget_currentChanged(int index)
         case 7:
         {
             controller->updateValues({"SELECT ДатаЗаказа, COUNT(*) FROM Заказ GROUP BY ДатаЗаказа ORDER BY ДатаЗаказа ASC",
-                                      "SELECT ДатаСдачи, COUNT(*) FROM Заказ WHERE ДатаСдачи IS NOT NULL GROUP BY ДатаСдачи ORDER BY ДатаСдачи ASC"},
-                                     {"SELECT ДатаЗаказа, COUNT(*) FROM Заказ GROUP BY ДатаЗаказа ORDER BY ДатаЗаказа ASC",
-                                      "SELECT ДатаРегистрации, COUNT(*) FROM Курьер GROUP BY ДатаРегистрации ORDER BY ДатаРегистрации ASC"});
+                                      "SELECT ДатаСдачи, COUNT(*) FROM Заказ WHERE ДатаСдачи IS NOT NULL GROUP BY ДатаСдачи ORDER BY ДатаСдачи ASC"});
             break;
         }
         case 9:

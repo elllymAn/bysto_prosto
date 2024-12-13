@@ -53,6 +53,7 @@ void registrationForm::init()
     ui->label_4->setStyleSheet(styleHelper::addProjectFont("white"));
     ui->label_5->setStyleSheet(styleHelper::addProjectFont("white"));
     ui->label_6->setStyleSheet(styleHelper::addProjectFont("white"));
+    ui->dateEdit->setStyleSheet(styleHelper::addTextStyle());
     QPalette palette = this->palette();
     QBrush brush(QColor(1, 50, 125));
     palette.setBrush(QPalette::Window, brush);

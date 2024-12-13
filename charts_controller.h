@@ -10,26 +10,28 @@
 #include <tuple>
 #include <QBarSet>
 #include <QStringList>
+#include <QValueAxis>
+#include <QDateTimeAxis>
 
-class charts_controller : public QWidget
+class chartsController : public QWidget
 {
     Q_OBJECT
 public:
-    charts_controller(QWidget* parent = nullptr);
-    ~charts_controller();
+    chartsController(QWidget* parent = nullptr);
+    ~chartsController();
     void init();
     void addNewLineSeries(QString line, QPen pen);
-    void addNewDataLineSeries(QString line, QPen pen);
-    void updateValues(QList<QString> lines, QList<QString> lines_date);
+    void updateValues(QList<QString> lines);
 
 
     QChartView* line1_view();
-    QChartView* line2_view();
+    //QChartView* line2_view();
 private:
     void getLineData(QString qry, QLineSeries* series);
     int max_value;
+    QValueAxis *axisY;
+    QDateTimeAxis *axisX;
     std::tuple<QChart*, QList<QLineSeries*>, QChartView*> line_chart;
-    std::tuple<QChart*, QList<QLineSeries*>, QChartView*> line_chart_date_reg;
 };
 
 #endif // CHARTS_CONTROLLER_H

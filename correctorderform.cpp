@@ -77,11 +77,11 @@ void correctOrderForm::on_pushButton_clicked()
 
         if(!qry.exec())
         {
-            QMessageBox::critical(this, "Ошибка! ","Не удалось добавить заказ! ", QMessageBox::Apply);
+            QMessageBox::critical(this, "Ошибка! ","Не удалось изменить заказ! ", QMessageBox::Apply);
         }
         else
         {
-            QMessageBox::information(this, "Успех ","Заказ успешно добавлен!", QMessageBox::Apply);
+            QMessageBox::information(this, "Успех ","Заказ успешно изменен!", QMessageBox::Apply);
             this->close();
             delete this;
         }

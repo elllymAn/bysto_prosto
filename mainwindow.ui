@@ -207,8 +207,8 @@ background-position: center center;
         </property>
         <property name="maximumSize">
          <size>
-          <width>75</width>
-          <height>75</height>
+          <width>16777215</width>
+          <height>16777215</height>
          </size>
         </property>
         <property name="styleSheet">
@@ -1616,7 +1616,7 @@ background-color: #01327D;
              </font>
             </property>
             <property name="text">
-             <string>Аналитика по заказам</string>
+             <string>Аналитика выполняемости заказов</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -1966,7 +1966,7 @@ background-color: #01327D;
              </font>
             </property>
             <property name="text">
-             <string>Старый пароль</string>
+             <string>Текущий пароль</string>
             </property>
            </widget>
           </item>

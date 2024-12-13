@@ -16,6 +16,7 @@ QString styleHelper::addTextStyle()
            "background-color: rgb(217, 217, 217);"
            "border: none;"
            "font-family: Marmelad;"
+           "color: black;"
            "}";
 }
 

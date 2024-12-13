@@ -138,7 +138,8 @@ void FreezeTableWidget::init_style()
                         "background-color: #D9D9D9;"
                         "font-family: Marmelad;"
                         "font-size: 20px;"
-                        "selection-background-color: #995067"
+                        "selection-background-color: #995067;"
+                        "color: black;"
                         "}"
                         "QHeaderView::section"
                         "{"
@@ -158,6 +159,7 @@ void FreezeTableWidget::init_style()
                                    "font-family: Marmelad;"
                                    "font-size: 20px;"
                                    "selection-background-color: rgba(242, 133, 255, 255);"
+                                   "color: black;"
                                     "}"
                                    "QHeaderView::section"
                                    "{"
@@ -245,7 +247,7 @@ void FreezeTableWidget::init_data()
 {
     foreach(CustomDelegateView* del, delegates)
         del->clearData();
-    sql_model->clear();
+    //sql_model->clear();
     QSqlQuery qry;
     if(!qry.exec(data_query)) {qDebug() << "data_qry"; }
     sql_model->setQuery(std::move(qry));
